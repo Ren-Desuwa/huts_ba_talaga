@@ -8,6 +8,7 @@ import java.awt.event.*;
 import java.util.List;
 
 import database.Database_Manager;
+import database.Subscription_Manager;
 
 public class Subscription_Panel {
     private JPanel panel;
@@ -18,11 +19,11 @@ public class Subscription_Panel {
     private JButton deleteButton;
     
     private Main_Frame mainFrame;
-    private Database_Manager dbManager;
+    private Subscription_Manager subscriptionManager;
     
     public Subscription_Panel(Main_Frame mainFrame) {
         this.mainFrame = mainFrame;
-        this.dbManager = mainFrame.getDbManager();
+        this.subscriptionManager = mainFrame.getDbManager().getSubscriptionManager();
         
         initializePanel();
     }
@@ -88,7 +89,7 @@ public class Subscription_Panel {
     
     private void loadSubscriptionData() {
         tableModel.setRowCount(0);
-        List<Subscription> subscriptions = dbManager.getAllSubscriptions();
+        List<Subscription> subscriptions = subscriptionManager.getAllSubscriptions();
         
         for (Subscription subscription : subscriptions) {
             Object[] rowData = {
@@ -148,7 +149,7 @@ public class Subscription_Panel {
                 }
                 
                 Subscription subscription = new Subscription(name, provider, accountNumber, type, monthlyCost);
-                dbManager.saveSubscription(subscription);
+                subscriptionManager.saveSubscription(subscription);
                 
                 dialog.dispose();
                 loadSubscriptionData();
@@ -174,7 +175,7 @@ public class Subscription_Panel {
         }
         
         String accountNumber = (String) tableModel.getValueAt(selectedRow, 2);
-        Subscription subscription = dbManager.getSubscriptionByAccountNumber(accountNumber);
+        Subscription subscription = subscriptionManager.getSubscriptionByAccountNumber(accountNumber);
         
         if (subscription == null) {
             JOptionPane.showMessageDialog(mainFrame, "Could not find subscription details", "Error", JOptionPane.ERROR_MESSAGE);
@@ -231,7 +232,7 @@ public class Subscription_Panel {
                 subscription.setType(type);
                 subscription.setMonthlyCost(monthlyCost);
                 
-                dbManager.updateSubscription(subscription);
+                subscriptionManager.updateSubscription(subscription);
                 
                 dialog.dispose();
                 loadSubscriptionData();
@@ -266,7 +267,7 @@ public class Subscription_Panel {
         );
         
         if (confirm == JOptionPane.YES_OPTION) {
-            boolean success = dbManager.deleteSubscription(accountNumber);
+            boolean success = subscriptionManager.deleteSubscription(accountNumber);
             if (success) {
                 loadSubscriptionData();
             } else {

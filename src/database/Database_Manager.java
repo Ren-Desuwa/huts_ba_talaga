@@ -154,6 +154,10 @@ public class Database_Manager {
         return readingHistoryManager;
     }
     
+    public Connection getConnection() {
+        return this.connection;
+    }
+    
     // Close connection
     public void closeConnection() {
         try {
@@ -164,4 +168,5 @@ public class Database_Manager {
             e.printStackTrace();
         }
     }
+    
 }

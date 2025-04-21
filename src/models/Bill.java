@@ -4,8 +4,8 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 public class Bill {
-    private UUID id;
-    private UUID utilityId;
+    private String id; // Changed from UUID to String
+    private String utilityId; // Changed from UUID to String
     private double amount;
     private LocalDate issueDate;
     private LocalDate dueDate;
@@ -13,8 +13,23 @@ public class Bill {
     private LocalDate paidDate;
     private double consumption; // usage for the billing period
     
-    public Bill(UUID utilityId, double amount, double consumption, LocalDate issueDate, LocalDate dueDate) {
-        this.id = UUID.randomUUID();
+    // Constructor with String IDs
+    public Bill(String id, String utilityId, double amount, double consumption, 
+                LocalDate issueDate, LocalDate dueDate) {
+        this.id = id;
+        this.utilityId = utilityId;
+        this.amount = amount;
+        this.consumption = consumption;
+        this.issueDate = issueDate;
+        this.dueDate = dueDate;
+        this.isPaid = false;
+        this.paidDate = null;
+    }
+    
+    // Constructor without ID (for new bills)
+    public Bill(String utilityId, double amount, double consumption, 
+                LocalDate issueDate, LocalDate dueDate) {
+        this.id = UUID.randomUUID().toString(); // Generate a new ID string
         this.utilityId = utilityId;
         this.amount = amount;
         this.consumption = consumption;
@@ -25,9 +40,9 @@ public class Bill {
     }
     
     // Getters and setters
-    public UUID getId() { return id; }
+    public String getId() { return id; }
     
-    public UUID getUtilityId() { return utilityId; }
+    public String getUtilityId() { return utilityId; }
     
     public double getAmount() { return amount; }
     public void setAmount(double amount) { this.amount = amount; }

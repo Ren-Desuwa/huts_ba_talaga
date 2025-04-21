@@ -3,21 +3,25 @@ package views;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
 import java.util.*;
 import models.Gas;
 import database.Database_Manager;
+import database.Electricity_Manager;
+import database.Gas_Manager;
 
 public class Gas_Panel implements Utility_Panel {
     private JPanel gasPanel;
     private Main_Frame parentFrame;
     private java.util.List<Gas> gasAccounts;
     private Map<String, Double> previousGasReadings;
-    private Database_Manager dbManager;
+    private Gas_Manager gasManager;
     
     public Gas_Panel(Main_Frame parentFrame, Map<String, Double> previousReadings) {
         this.parentFrame = parentFrame;
         this.previousGasReadings = previousReadings;
-        this.dbManager = Database_Manager.getInstance();
+        Connection connection = Database_Manager.getInstance().getConnection();
+        this.gasManager = new Gas_Manager(connection);
         
         // Initialize the panel
         gasPanel = new JPanel(new BorderLayout());
@@ -37,7 +41,7 @@ public class Gas_Panel implements Utility_Panel {
         gasPanel.removeAll();
         
         // Fetch current data
-        gasAccounts = dbManager.getAllGas();
+        gasAccounts = gasManager.getAllGas();
         
         // Add title
         JLabel titleLabel = new JLabel("Gas Management");
@@ -144,7 +148,7 @@ public class Gas_Panel implements Utility_Panel {
                 gas.setMeterReading(reading);
                 
                 // Save to database
-                dbManager.saveGas(gas);
+                gasManager.saveGas(gas);
                 previousGasReadings.put(accountNumber, reading);
                 
                 dialog.dispose();
@@ -213,7 +217,7 @@ public class Gas_Panel implements Utility_Panel {
                 selected.setMeterReading(newReading);
                 
                 // Update in database
-                dbManager.updateGas(selected);
+                gasManager.updateGas(selected);
                 
                 dialog.dispose();
                 refreshPanel(); // Refresh the panel

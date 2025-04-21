@@ -11,12 +11,18 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.text.DecimalFormat;
 
-import database.Database_Manager;
+import database.*;
+
 
 public class Summary_Panel {
     private JPanel panel;
     private Main_Frame mainFrame;
     private Database_Manager dbManager;
+    private Electricity_Manager electricityManager;
+    private Gas_Manager gasManager;
+    private Water_Manager waterManager;
+    private Subscription_Manager subscriptionManager;
+    
     
     // For bill calculations
     private Map<String, Double> previousElectricityReadings;
@@ -142,10 +148,10 @@ public class Summary_Panel {
         double totalCost = 0.0;
         
         // Get all utility accounts
-        List<Electricity> electricityAccounts = dbManager.getAllElectricity();
-        List<Gas> gasAccounts = dbManager.getAllGas();
-        List<Water> waterAccounts = dbManager.getAllWater();
-        List<Subscription> subscriptions = dbManager.getAllSubscriptions();
+        List<Electricity> electricityAccounts = electricityManager.getAllElectricity();
+        List<Gas> gasAccounts = gasManager.getAllGas();
+        List<Water> waterAccounts = waterManager.getAllWater();
+        List<Subscription> subscriptions = subscriptionManager.getAllSubscriptions();
         
         DecimalFormat df = new DecimalFormat("#.##");
         

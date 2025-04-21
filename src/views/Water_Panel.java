@@ -3,21 +3,25 @@ package views;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.sql.Connection;
 import java.util.*;
 import models.Water;
 import database.Database_Manager;
+import database.Electricity_Manager;
+import database.Water_Manager;
 
 public class Water_Panel implements Utility_Panel {
     private JPanel waterPanel;
     private Main_Frame parentFrame;
     private java.util.List<Water> waterAccounts;
     private Map<String, Double> previousWaterReadings;
-    private Database_Manager dbManager;
+    private Water_Manager waterManager;
     
     public Water_Panel(Main_Frame parentFrame, Map<String, Double> previousReadings) {
         this.parentFrame = parentFrame;
         this.previousWaterReadings = previousReadings;
-        this.dbManager = Database_Manager.getInstance();
+        Connection connection = Database_Manager.getInstance().getConnection();
+        this.waterManager = new Water_Manager(connection);
         
         // Initialize the panel
         waterPanel = new JPanel(new BorderLayout());
@@ -37,7 +41,7 @@ public class Water_Panel implements Utility_Panel {
         waterPanel.removeAll();
         
         // Fetch current data
-        waterAccounts = dbManager.getAllWater();
+        waterAccounts = waterManager.getAllWater();
         
         // Add title
         JLabel titleLabel = new JLabel("Water Management");
@@ -144,7 +148,7 @@ public class Water_Panel implements Utility_Panel {
                 water.setMeterReading(reading);
                 
                 // Save to database
-                dbManager.saveWater(water);
+                waterManager.saveWater(water);
                 previousWaterReadings.put(accountNumber, reading);
                 
                 dialog.dispose();
@@ -213,7 +217,7 @@ public class Water_Panel implements Utility_Panel {
                 selected.setMeterReading(newReading);
                 
                 // Update in database
-                dbManager.updateWater(selected);
+                waterManager.updateWater(selected);
                 
                 dialog.dispose();
                 refreshPanel(); // Refresh the panel

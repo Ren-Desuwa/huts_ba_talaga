@@ -4,12 +4,18 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 import models.*;
-import database.Database_Manager;
+import database.*;
 
 public class Welcome_Panel implements Utility_Panel {
     private JPanel welcomePanel;
     private Main_Frame parentFrame;
     private Database_Manager dbManager;
+    private Water_Manager waterManager;
+    private Gas_Manager gasManager;
+    private Electricity_Manager electricityManager;
+    private Subscription_Manager subscriptionManager;
+    
+    
     
     public Welcome_Panel(Main_Frame parentFrame, Database_Manager dbManager) {
         this.parentFrame = parentFrame;
@@ -33,10 +39,10 @@ public class Welcome_Panel implements Utility_Panel {
         welcomePanel.removeAll();
         
         // Get data from database
-        List<Electricity> electricityAccounts = dbManager.getAllElectricity();
-        List<Gas> gasAccounts = dbManager.getAllGas();
-        List<Water> waterAccounts = dbManager.getAllWater();
-        List<Subscription> subscriptions = dbManager.getAllSubscriptions();
+        List<Electricity> electricityAccounts = electricityManager.getAllElectricity();
+        List<Gas> gasAccounts = gasManager.getAllGas();
+        List<Water> waterAccounts = waterManager.getAllWater();
+        List<Subscription> subscriptions = subscriptionManager.getAllSubscriptions();
         
         JLabel welcomeLabel = new JLabel("Welcome to House Utility Management System");
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 24));

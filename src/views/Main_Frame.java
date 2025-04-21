@@ -2,9 +2,7 @@ package views;
 
 import models.*;
 import javax.swing.*;
-
-import database.Database_Manager;
-
+import database.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
@@ -30,6 +28,14 @@ public class Main_Frame extends JFrame {
     
     // Database manager instance
     private Database_Manager dbManager;
+    private Subscription_Manager subscriptionManager;
+    private Bill_Manager billManager;
+    private Reading_History_Manager readingHistoryManager;
+    private Electricity_Manager electricityManager;
+    private Gas_Manager gasManager;
+    private Water_Manager waterManager;
+    private User_Manager userManager;
+    
     
     public Main_Frame() {
         // Initialize database manager
@@ -206,40 +212,40 @@ public class Main_Frame extends JFrame {
     
     private void addSampleData() {
         // Check if we already have data in the database
-        java.util.List<Electricity> electricityAccounts = dbManager.getAllElectricity();
-        java.util.List<Gas> gasAccounts = dbManager.getAllGas();
-        java.util.List<Water> waterAccounts = dbManager.getAllWater();
-        java.util.List<Subscription> subscriptions = dbManager.getAllSubscriptions();
+        java.util.List<Electricity> electricityAccounts = electricityManager.getAllElectricity();
+        java.util.List<Gas> gasAccounts = gasManager.getAllGas();
+        java.util.List<Water> waterAccounts = waterManager.getAllWater();
+        java.util.List<Subscription> subscriptions = subscriptionManager.getAllSubscriptions();
         
         // Only add sample data if no data exists
         if (electricityAccounts.isEmpty() && gasAccounts.isEmpty() && waterAccounts.isEmpty() && subscriptions.isEmpty()) {
             // Add sample electricity account
             Electricity electricity = new Electricity("Home Electricity", "Power Company", "EL-12345", 0.12);
             electricity.setMeterReading(1000.0);
-            dbManager.saveElectricity(electricity);
+            electricityManager.saveElectricity(electricity);
             previousElectricityReadings.put(electricity.getAccountNumber(), electricity.getMeterReading());
             
             // Add sample gas account
             Gas gas = new Gas("Home Gas", "Gas Company", "GS-67890", 0.85);
             gas.setMeterReading(500.0);
-            dbManager.saveGas(gas);
+            gasManager.saveGas(gas);
             previousGasReadings.put(gas.getAccountNumber(), gas.getMeterReading());
             
             // Add sample water account
             Water water = new Water("Home Water", "Water Company", "WT-54321", 2.5);
             water.setMeterReading(150.0);
-            dbManager.saveWater(water);
+            waterManager.saveWater(water);
             previousWaterReadings.put(water.getAccountNumber(), water.getMeterReading());
             
             // Add sample subscriptions
             Subscription internet = new Subscription("Home Internet", "ISP Provider", "NET-123", SubscriptionType.INTERNET, 49.99);
-            dbManager.saveSubscription(internet);
+            subscriptionManager.saveSubscription(internet);
             
             Subscription streaming = new Subscription("Movie Streaming", "StreamFlix", "STR-456", SubscriptionType.STREAMING, 14.99);
-            dbManager.saveSubscription(streaming);
+            subscriptionManager.saveSubscription(streaming);
             
             Subscription mobile = new Subscription("Mobile Phone", "TeleCom", "PHN-789", SubscriptionType.PHONE, 39.99);
-            dbManager.saveSubscription(mobile);
+            subscriptionManager.saveSubscription(mobile);
             
             JOptionPane.showMessageDialog(this, 
                 "Sample data has been added to the database.", 

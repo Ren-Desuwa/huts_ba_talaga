@@ -1,6 +1,7 @@
 package database;
 
 import models.Subscription;
+import models.SubscriptionType; // Add this import
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class Subscription_Manager {
             pstmt.setString(2, subscription.getName());
             pstmt.setString(3, subscription.getProvider());
             pstmt.setString(4, subscription.getAccountNumber());
-            pstmt.setString(5, subscription.getType());
+            pstmt.setString(5, subscription.getType().toString()); // Changed to get the type as a string
             pstmt.setDouble(6, subscription.getMonthlyCost());
             pstmt.setString(7, subscription.getNextBillingDate().toString());
             pstmt.executeUpdate();
@@ -54,12 +55,12 @@ public class Subscription_Manager {
         return subscriptionList;
     }
     
-    public List<Subscription> getSubscriptionsByType(String type) {
+    public List<Subscription> getSubscriptionsByType(SubscriptionType type) { // Changed parameter type
         List<Subscription> subscriptionList = new ArrayList<>();
         String sql = "SELECT * FROM subscription WHERE type = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, type);
+            pstmt.setString(1, type.toString());
             ResultSet rs = pstmt.executeQuery();
             
             while (rs.next()) {
@@ -114,7 +115,7 @@ public class Subscription_Manager {
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, subscription.getName());
             pstmt.setString(2, subscription.getProvider());
-            pstmt.setString(3, subscription.getType());
+            pstmt.setString(3, subscription.getType().toString()); // Changed to get the type as a string
             pstmt.setDouble(4, subscription.getMonthlyCost());
             pstmt.setString(5, subscription.getNextBillingDate().toString());
             pstmt.setString(6, subscription.getAccountNumber());
@@ -178,11 +179,13 @@ public class Subscription_Manager {
         String name = rs.getString("name");
         String provider = rs.getString("provider");
         String accountNumber = rs.getString("account_number");
-        String type = rs.getString("type");
+        String typeStr = rs.getString("type");
+        SubscriptionType type = SubscriptionType.valueOf(typeStr); // Convert string to enum
         double monthlyCost = rs.getDouble("monthly_cost");
         LocalDate nextBillingDate = LocalDate.parse(rs.getString("next_billing_date"));
         
-        Subscription subscription = new Subscription(id, name, provider, accountNumber, type, monthlyCost);
+        Subscription subscription = new Subscription(name, provider, accountNumber, type, monthlyCost);
+        subscription.setId(id); // Set the ID from the database
         subscription.setNextBillingDate(nextBillingDate);
         return subscription;
     }

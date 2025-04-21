@@ -2,22 +2,24 @@ package views;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
+import java.sql.Connection;
 import java.util.*;
 import models.Electricity;
 import database.Database_Manager;
+import database.Electricity_Manager;
 
 public class Electricity_Panel implements Utility_Panel {
     private JPanel electricityPanel;
     private Main_Frame parentFrame;
     private java.util.List<Electricity> electricityAccounts;
     private Map<String, Double> previousElectricityReadings;
-    private Database_Manager dbManager;
+    private Electricity_Manager electricityManager;
     
     public Electricity_Panel(Main_Frame parentFrame, Map<String, Double> previousReadings) {
         this.parentFrame = parentFrame;
         this.previousElectricityReadings = previousReadings;
-        this.dbManager = Database_Manager.getInstance();
+        Connection connection = Database_Manager.getInstance().getConnection();
+        this.electricityManager = new Electricity_Manager(connection);
         
         // Initialize the panel
         electricityPanel = new JPanel(new BorderLayout());
@@ -37,7 +39,7 @@ public class Electricity_Panel implements Utility_Panel {
         electricityPanel.removeAll();
         
         // Fetch current data
-        electricityAccounts = dbManager.getAllElectricity();
+        electricityAccounts = electricityManager.getAllElectricity();
         
         // Add title
         JLabel titleLabel = new JLabel("Electricity Management");
@@ -144,7 +146,7 @@ public class Electricity_Panel implements Utility_Panel {
                 electricity.setMeterReading(reading);
                 
                 // Save to database
-                dbManager.saveElectricity(electricity);
+                electricityAccounts = electricityManager.getAllElectricity();
                 previousElectricityReadings.put(accountNumber, reading);
                 
                 dialog.dispose();
@@ -213,7 +215,7 @@ public class Electricity_Panel implements Utility_Panel {
                 selected.setMeterReading(newReading);
                 
                 // Update in database
-                dbManager.updateElectricity(selected);
+                electricityAccounts = electricityManager.getAllElectricity();
                 
                 dialog.dispose();
                 refreshPanel(); // Refresh the panel
