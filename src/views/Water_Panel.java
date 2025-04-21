@@ -75,7 +75,7 @@ public class Water_Panel implements Utility_Panel {
             data[i][1] = account.getProvider();
             data[i][2] = account.getAccountNumber();
             data[i][3] = account.getMeterReading();
-            data[i][4] = account.getRatePerKl();
+            data[i][4] = account.getRatePerCubicMeter();
         }
         
         JTable table = new JTable(data, columnNames);
@@ -289,7 +289,7 @@ public class Water_Panel implements Utility_Panel {
             sb.append("Previous Reading: ").append(previousReading).append(" kL\n");
             sb.append("Current Reading: ").append(selected.getMeterReading()).append(" kL\n");
             sb.append("Consumption: ").append(consumption).append(" kL\n\n");
-            sb.append("Rate: $").append(selected.getRatePerKl()).append(" per kL\n");
+            sb.append("Rate: $").append(selected.getRatePerCubicMeter()).append(" per kL\n");
             sb.append("Total Bill: $").append(String.format("%.2f", bill)).append("\n");
             
             resultArea.setText(sb.toString());

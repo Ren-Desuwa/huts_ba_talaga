@@ -3,6 +3,7 @@ package views;
 import models.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.List;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
@@ -156,7 +157,7 @@ public class Summary_Panel {
                 usage = account.getMeterReading() - previousReading;
             }
             
-            double cost = usage * account.getRatePerUnit();
+            double cost = usage * account.getRatePerKwh();
             totalCost += cost;
             
             Object[] rowData = {
@@ -200,7 +201,7 @@ public class Summary_Panel {
                 usage = account.getMeterReading() - previousReading;
             }
             
-            double cost = usage * account.getRatePerUnit();
+            double cost = usage * account.getRatePerCubicMeter();
             totalCost += cost;
             
             Object[] rowData = {

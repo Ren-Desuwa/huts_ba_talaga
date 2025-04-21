@@ -1,8 +1,10 @@
 package models;
 
 import java.time.LocalDate;
+import java.util.UUID;  // Add this import
 
 public class Subscription {
+    private String id;  // New field
     private String name;
     private String provider;
     private String accountNumber;
@@ -12,6 +14,7 @@ public class Subscription {
     
     public Subscription(String name, String provider, String accountNumber, 
                       SubscriptionType type, double monthlyCost) {
+        this.id = UUID.randomUUID().toString();  // Generate a new ID
         this.name = name;
         this.provider = provider;
         this.accountNumber = accountNumber;
@@ -20,7 +23,11 @@ public class Subscription {
         this.nextBillingDate = LocalDate.now().plusMonths(1);
     }
     
-    // Getters and setters
+    // Add ID getter and setter
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    
+    // Existing getters and setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
     

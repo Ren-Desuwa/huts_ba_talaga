@@ -959,6 +959,54 @@ public class Database_Manager {
         
         return history;
     }
+    
+    public Subscription getSubscriptionByAccountNumber(String accountNumber) {
+        String sql = "SELECT * FROM subscription WHERE account_number = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, accountNumber);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String id = rs.getString("id");
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                SubscriptionType type = SubscriptionType.valueOf(rs.getString("type"));
+                double monthlyCost = rs.getDouble("monthly_cost");
+                LocalDate nextBillingDate = LocalDate.parse(rs.getString("next_billing_date"));
+                
+                Subscription subscription = new Subscription(name, provider, accountNumber, type, monthlyCost);
+                subscription.setId(id);
+                subscription.setNextBillingDate(nextBillingDate);
+                return subscription;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+    
+    public boolean updateSubscription(Subscription subscription) {
+        String sql = "UPDATE subscription SET name = ?, provider = ?, account_number = ?, " +
+                     "type = ?, monthly_cost = ?, next_billing_date = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, subscription.getName());
+            pstmt.setString(2, subscription.getProvider());
+            pstmt.setString(3, subscription.getAccountNumber());
+            pstmt.setString(4, subscription.getType().toString());
+            pstmt.setDouble(5, subscription.getMonthlyCost());
+            pstmt.setString(6, subscription.getNextBillingDate().toString());
+            pstmt.setString(7, subscription.getId());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 
     // Helper class for reading history
     public static class ReadingHistory {
