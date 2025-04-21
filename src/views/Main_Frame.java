@@ -481,20 +481,6 @@ public class Main_Frame extends JFrame {
         dialog.setVisible(true);
     }
     
-    private void showGasPanel() {
-        // Similar to electricity panel
-        JOptionPane.showMessageDialog(this, 
-            "Gas Management panel would be implemented similarly to Electricity", 
-            "Information", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
-    private void showWaterPanel() {
-        // Similar to electricity panel
-        JOptionPane.showMessageDialog(this, 
-            "Water Management panel would be implemented similarly to Electricity", 
-            "Information", JOptionPane.INFORMATION_MESSAGE);
-    }
-    
     private void showSubscriptionsPanel() {
         // Clear existing content
         contentPanel.removeAll();
@@ -724,5 +710,686 @@ public class Main_Frame extends JFrame {
                 "Sample data has been added to the database.", 
                 "Sample Data", JOptionPane.INFORMATION_MESSAGE);
         }
+    }
+    private void showGasPanel() {
+        // Clear existing content
+        contentPanel.removeAll();
+        
+        // Create gas panel
+        JPanel gasPanel = new JPanel(new BorderLayout());
+        gasPanel.setBackground(new Color(240, 240, 240));
+        
+        // Add title
+        JLabel titleLabel = new JLabel("Gas Management");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+        
+        // Create buttons panel
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonsPanel.setBackground(new Color(240, 240, 240));
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        
+        JButton addButton = new JButton("Add Account");
+        JButton updateButton = new JButton("Update Reading");
+        JButton calculateButton = new JButton("Calculate Bill");
+        
+        addButton.addActionListener(e -> addGasAccount());
+        updateButton.addActionListener(e -> updateGasReading());
+        calculateButton.addActionListener(e -> calculateGasBill());
+        
+        buttonsPanel.add(addButton);
+        buttonsPanel.add(updateButton);
+        buttonsPanel.add(calculateButton);
+        
+        // Create table for data
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        String[] columnNames = {"Name", "Provider", "Account Number", "Current Reading", "Rate ($/unit)"};
+        Object[][] data = new Object[gasAccounts.size()][5];
+        
+        for (int i = 0; i < gasAccounts.size(); i++) {
+            Gas account = gasAccounts.get(i);
+            data[i][0] = account.getName();
+            data[i][1] = account.getProvider();
+            data[i][2] = account.getAccountNumber();
+            data[i][3] = account.getMeterReading();
+            data[i][4] = account.getRatePerUnit();
+        }
+        
+        JTable table = new JTable(data, columnNames);
+        JScrollPane scrollPane = new JScrollPane(table);
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Add components to gas panel
+        gasPanel.add(titleLabel, BorderLayout.NORTH);
+        gasPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        gasPanel.add(tablePanel, BorderLayout.CENTER);
+        
+        // Add gas panel to content panel
+        contentPanel.add(gasPanel, BorderLayout.CENTER);
+        
+        // Refresh UI
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
+    private void addGasAccount() {
+        // Create a dialog for adding a new gas account
+        JDialog dialog = new JDialog(this, "Add Gas Account", true);
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        
+        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel nameLabel = new JLabel("Account Name:");
+        JTextField nameField = new JTextField(20);
+        
+        JLabel providerLabel = new JLabel("Provider:");
+        JTextField providerField = new JTextField(20);
+        
+        JLabel accountLabel = new JLabel("Account Number:");
+        JTextField accountField = new JTextField(20);
+        
+        JLabel rateLabel = new JLabel("Rate per Unit ($):");
+        JTextField rateField = new JTextField(20);
+        
+        JLabel readingLabel = new JLabel("Initial Reading (units):");
+        JTextField readingField = new JTextField(20);
+        
+        formPanel.add(nameLabel);
+        formPanel.add(nameField);
+        formPanel.add(providerLabel);
+        formPanel.add(providerField);
+        formPanel.add(accountLabel);
+        formPanel.add(accountField);
+        formPanel.add(rateLabel);
+        formPanel.add(rateField);
+        formPanel.add(readingLabel);
+        formPanel.add(readingField);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton cancelButton = new JButton("Cancel");
+        JButton saveButton = new JButton("Save");
+        
+        cancelButton.addActionListener(e -> dialog.dispose());
+        saveButton.addActionListener(e -> {
+            try {
+                String name = nameField.getText();
+                String provider = providerField.getText();
+                String accountNumber = accountField.getText();
+                double rate = Double.parseDouble(rateField.getText());
+                double reading = Double.parseDouble(readingField.getText());
+                
+                Gas gas = new Gas(name, provider, accountNumber, rate);
+                gas.setMeterReading(reading);
+                gasAccounts.add(gas);
+                previousGasReadings.put(accountNumber, reading);
+                
+                // Save to database
+                dbManager.saveGas(gas);
+                
+                dialog.dispose();
+                showGasPanel(); // Refresh the panel
+                
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, 
+                    "Please enter valid numbers for rate and reading.", 
+                    "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(saveButton);
+        
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
+    }
+
+    private void updateGasReading() {
+        if (gasAccounts.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No gas accounts found.", 
+                "No Accounts", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Create a dialog for selecting an account and updating its reading
+        JDialog dialog = new JDialog(this, "Update Gas Reading", true);
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        
+        JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel accountLabel = new JLabel("Select Account:");
+        JComboBox<String> accountCombo = new JComboBox<>();
+        
+        for (Gas account : gasAccounts) {
+            accountCombo.addItem(account.getName() + " (" + account.getAccountNumber() + ")");
+        }
+        
+        JLabel readingLabel = new JLabel("New Reading (units):");
+        JTextField readingField = new JTextField(20);
+        
+        formPanel.add(accountLabel);
+        formPanel.add(accountCombo);
+        formPanel.add(readingLabel);
+        formPanel.add(readingField);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton cancelButton = new JButton("Cancel");
+        JButton saveButton = new JButton("Save");
+        
+        cancelButton.addActionListener(e -> dialog.dispose());
+        saveButton.addActionListener(e -> {
+            try {
+                int index = accountCombo.getSelectedIndex();
+                double newReading = Double.parseDouble(readingField.getText());
+                
+                Gas selected = gasAccounts.get(index);
+                previousGasReadings.put(selected.getAccountNumber(), selected.getMeterReading());
+                selected.setMeterReading(newReading);
+                
+                // Update in database
+                dbManager.updateGas(selected);
+                
+                dialog.dispose();
+                showGasPanel(); // Refresh the panel
+                
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, 
+                    "Please enter a valid number for the reading.", 
+                    "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(saveButton);
+        
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
+    }
+
+    private void calculateGasBill() {
+        if (gasAccounts.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No gas accounts found.", 
+                "No Accounts", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Create a dialog for selecting an account and showing the bill
+        JDialog dialog = new JDialog(this, "Gas Bill Calculation", true);
+        dialog.setSize(500, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        JLabel accountLabel = new JLabel("Select Account:");
+        JComboBox<String> accountCombo = new JComboBox<>();
+        
+        for (Gas account : gasAccounts) {
+            accountCombo.addItem(account.getName() + " (" + account.getAccountNumber() + ")");
+        }
+        
+        JButton calculateButton = new JButton("Calculate");
+        
+        topPanel.add(accountLabel);
+        topPanel.add(accountCombo);
+        topPanel.add(calculateButton);
+        
+        JPanel resultPanel = new JPanel(new BorderLayout());
+        resultPanel.setBorder(BorderFactory.createEmptyBorder(0, 15, 15, 15));
+        
+        JTextArea resultArea = new JTextArea();
+        resultArea.setEditable(false);
+        resultArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        JScrollPane scrollPane = new JScrollPane(resultArea);
+        
+        resultPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        calculateButton.addActionListener(e -> {
+            int index = accountCombo.getSelectedIndex();
+            Gas selected = gasAccounts.get(index);
+            double previousReading = previousGasReadings.get(selected.getAccountNumber());
+            double consumption = selected.getMeterReading() - previousReading;
+            double bill = selected.calculateBill(previousReading);
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("Bill Calculation:\n\n");
+            sb.append("Account: ").append(selected.getName()).append("\n");
+            sb.append("Provider: ").append(selected.getProvider()).append("\n");
+            sb.append("Account Number: ").append(selected.getAccountNumber()).append("\n\n");
+            sb.append("Previous Reading: ").append(previousReading).append(" units\n");
+            sb.append("Current Reading: ").append(selected.getMeterReading()).append(" units\n");
+            sb.append("Consumption: ").append(consumption).append(" units\n\n");
+            sb.append("Rate: $").append(selected.getRatePerUnit()).append(" per unit\n");
+            sb.append("Total Bill: $").append(String.format("%.2f", bill)).append("\n");
+            
+            resultArea.setText(sb.toString());
+        });
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(closeButton);
+        
+        dialog.add(topPanel, BorderLayout.NORTH);
+        dialog.add(resultPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
+    }
+
+    // Water panel functions
+    private void showWaterPanel() {
+        // Clear existing content
+        contentPanel.removeAll();
+        
+        // Create water panel
+        JPanel waterPanel = new JPanel(new BorderLayout());
+        waterPanel.setBackground(new Color(240, 240, 240));
+        
+        // Add title
+        JLabel titleLabel = new JLabel("Water Management");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+        
+        // Create buttons panel
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        buttonsPanel.setBackground(new Color(240, 240, 240));
+        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
+        
+        JButton addButton = new JButton("Add Account");
+        JButton updateButton = new JButton("Update Reading");
+        JButton calculateButton = new JButton("Calculate Bill");
+        
+        addButton.addActionListener(e -> addWaterAccount());
+        updateButton.addActionListener(e -> updateWaterReading());
+        calculateButton.addActionListener(e -> calculateWaterBill());
+        
+        buttonsPanel.add(addButton);
+        buttonsPanel.add(updateButton);
+        buttonsPanel.add(calculateButton);
+        
+        // Create table for data
+        JPanel tablePanel = new JPanel(new BorderLayout());
+        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        String[] columnNames = {"Name", "Provider", "Account Number", "Current Reading", "Rate ($/m³)"};
+        Object[][] data = new Object[waterAccounts.size()][5];
+        
+        for (int i = 0; i < waterAccounts.size(); i++) {
+            Water account = waterAccounts.get(i);
+            data[i][0] = account.getName();
+            data[i][1] = account.getProvider();
+            data[i][2] = account.getAccountNumber();
+            data[i][3] = account.getMeterReading();
+            data[i][4] = account.getRatePerCubicMeter();
+        }
+        
+        JTable table = new JTable(data, columnNames);
+        JScrollPane scrollPane = new JScrollPane(table);
+        tablePanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Add components to water panel
+        waterPanel.add(titleLabel, BorderLayout.NORTH);
+        waterPanel.add(buttonsPanel, BorderLayout.SOUTH);
+        waterPanel.add(tablePanel, BorderLayout.CENTER);
+        
+        // Add water panel to content panel
+        contentPanel.add(waterPanel, BorderLayout.CENTER);
+        
+        // Refresh UI
+        contentPanel.revalidate();
+        contentPanel.repaint();
+    }
+
+    private void addWaterAccount() {
+        // Create a dialog for adding a new water account
+        JDialog dialog = new JDialog(this, "Add Water Account", true);
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        
+        JPanel formPanel = new JPanel(new GridLayout(5, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel nameLabel = new JLabel("Account Name:");
+        JTextField nameField = new JTextField(20);
+        
+        JLabel providerLabel = new JLabel("Provider:");
+        JTextField providerField = new JTextField(20);
+        
+        JLabel accountLabel = new JLabel("Account Number:");
+        JTextField accountField = new JTextField(20);
+        
+        JLabel rateLabel = new JLabel("Rate per Cubic Meter ($):");
+        JTextField rateField = new JTextField(20);
+        
+        JLabel readingLabel = new JLabel("Initial Reading (m³):");
+        JTextField readingField = new JTextField(20);
+        
+        formPanel.add(nameLabel);
+        formPanel.add(nameField);
+        formPanel.add(providerLabel);
+        formPanel.add(providerField);
+        formPanel.add(accountLabel);
+        formPanel.add(accountField);
+        formPanel.add(rateLabel);
+        formPanel.add(rateField);
+        formPanel.add(readingLabel);
+        formPanel.add(readingField);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton cancelButton = new JButton("Cancel");
+        JButton saveButton = new JButton("Save");
+        
+        cancelButton.addActionListener(e -> dialog.dispose());
+        saveButton.addActionListener(e -> {
+            try {
+                String name = nameField.getText();
+                String provider = providerField.getText();
+                String accountNumber = accountField.getText();
+                double rate = Double.parseDouble(rateField.getText());
+                double reading = Double.parseDouble(readingField.getText());
+                
+                Water water = new Water(name, provider, accountNumber, rate);
+                water.setMeterReading(reading);
+                waterAccounts.add(water);
+                previousWaterReadings.put(accountNumber, reading);
+                
+                // Save to database
+                dbManager.saveWater(water);
+                
+                dialog.dispose();
+                showWaterPanel(); // Refresh the panel
+                
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, 
+                    "Please enter valid numbers for rate and reading.", 
+                    "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(saveButton);
+        
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
+    }
+
+    private void updateWaterReading() {
+        if (waterAccounts.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No water accounts found.", 
+                "No Accounts", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Create a dialog for selecting an account and updating its reading
+        JDialog dialog = new JDialog(this, "Update Water Reading", true);
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        
+        JPanel formPanel = new JPanel(new GridLayout(2, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel accountLabel = new JLabel("Select Account:");
+        JComboBox<String> accountCombo = new JComboBox<>();
+        
+        for (Water account : waterAccounts) {
+            accountCombo.addItem(account.getName() + " (" + account.getAccountNumber() + ")");
+        }
+        
+        JLabel readingLabel = new JLabel("New Reading (m³):");
+        JTextField readingField = new JTextField(20);
+        
+        formPanel.add(accountLabel);
+        formPanel.add(accountCombo);
+        formPanel.add(readingLabel);
+        formPanel.add(readingField);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton cancelButton = new JButton("Cancel");
+        JButton saveButton = new JButton("Save");
+        
+        cancelButton.addActionListener(e -> dialog.dispose());
+        saveButton.addActionListener(e -> {
+            try {
+                int index = accountCombo.getSelectedIndex();
+                double newReading = Double.parseDouble(readingField.getText());
+                
+                Water selected = waterAccounts.get(index);
+                previousWaterReadings.put(selected.getAccountNumber(), selected.getMeterReading());
+                selected.setMeterReading(newReading);
+                
+                // Update in database
+                dbManager.updateWater(selected);
+                
+                dialog.dispose();
+                showWaterPanel(); // Refresh the panel
+                
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog, 
+                    "Please enter a valid number for the reading.", 
+                    "Input Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(saveButton);
+        
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
+    }
+
+    private void calculateWaterBill() {
+        if (waterAccounts.isEmpty()) {
+            JOptionPane.showMessageDialog(this, 
+                "No water accounts found.", 
+                "No Accounts", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Create a dialog for selecting an account and showing the bill
+        JDialog dialog = new JDialog(this, "Water Bill Calculation", true);
+        dialog.setSize(500, 400);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new BorderLayout());
+        
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        JLabel accountLabel = new JLabel("Select Account:");
+        JComboBox<String> accountCombo = new JComboBox<>();
+        
+        for (Water account : waterAccounts) {
+            accountCombo.addItem(account.getName() + " (" + account.getAccountNumber() + ")");
+        }
+        
+        JButton calculateButton = new JButton("Calculate");
+        
+        topPanel.add(accountLabel);
+        topPanel.add(accountCombo);
+        topPanel.add(calculateButton);
+        
+        JPanel resultPanel = new JPanel(new BorderLayout());
+        resultPanel.setBorder(BorderFactory.createEmptyBorder(0, 15, 15, 15));
+        
+        JTextArea resultArea = new JTextArea();
+        resultArea.setEditable(false);
+        resultArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        JScrollPane scrollPane = new JScrollPane(resultArea);
+        
+        resultPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        calculateButton.addActionListener(e -> {
+            int index = accountCombo.getSelectedIndex();
+            Water selected = waterAccounts.get(index);
+            double previousReading = previousWaterReadings.get(selected.getAccountNumber());
+            double consumption = selected.getMeterReading() - previousReading;
+            double bill = selected.calculateBill(previousReading);
+            
+            StringBuilder sb = new StringBuilder();
+            sb.append("Bill Calculation:\n\n");
+            sb.append("Account: ").append(selected.getName()).append("\n");
+            sb.append("Provider: ").append(selected.getProvider()).append("\n");
+            sb.append("Account Number: ").append(selected.getAccountNumber()).append("\n\n");
+            sb.append("Previous Reading: ").append(previousReading).append(" m³\n");
+            sb.append("Current Reading: ").append(selected.getMeterReading()).append(" m³\n");
+            sb.append("Consumption: ").append(consumption).append(" m³\n\n");
+            sb.append("Rate: $").append(selected.getRatePerCubicMeter()).append(" per m³\n");
+            sb.append("Total Bill: $").append(String.format("%.2f", bill)).append("\n");
+            
+            resultArea.setText(sb.toString());
+        });
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> dialog.dispose());
+        buttonPanel.add(closeButton);
+        
+        dialog.add(topPanel, BorderLayout.NORTH);
+        dialog.add(resultPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
+    }
+
+    // Summary panel functions
+    private void showSummaryPanel() {
+        // Clear existing content
+        contentPanel.removeAll();
+        
+        // Create summary panel
+        JPanel summaryPanel = new JPanel(new BorderLayout());
+        summaryPanel.setBackground(new Color(240, 240, 240));
+        
+        // Add title
+        JLabel titleLabel = new JLabel("Monthly Summary");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
+        titleLabel.setHorizontalAlignment(JLabel.CENTER);
+        titleLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
+        
+        // Create content panel
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 20, 20));
+        
+        // Get all accounts from database
+        List<Electricity> electricityList = dbManager.getAllElectricity();
+        List<Gas> gasList = dbManager.getAllGas();
+        List<Water> waterList = dbManager.getAllWater();
+        List<Subscription> subscriptionList = dbManager.getAllSubscriptions();
+        
+        // Calculate total monthly cost
+        double electricityCost = calculateTotalElectricityCost(electricityList);
+        double gasCost = calculateTotalGasCost(gasList);
+        double waterCost = calculateTotalWaterCost(waterList);
+        double subscriptionCost = calculateTotalSubscriptionCost(subscriptionList);
+        double totalCost = electricityCost + gasCost + waterCost + subscriptionCost;
+        
+        // Create summary text area
+        JTextArea summaryArea = new JTextArea();
+        summaryArea.setEditable(false);
+        summaryArea.setFont(new Font("Monospaced", Font.PLAIN, 14));
+        summaryArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        
+        // Build summary text
+        StringBuilder sb = new StringBuilder();
+        sb.append("Monthly Utility Costs Summary\n");
+        sb.append("===========================\n\n");
+        
+        sb.append("Electricity Accounts:\n");
+        sb.append("-----------------\n");
+        if (electricityList.isEmpty()) {
+            sb.append("No electricity accounts found.\n");
+        } else {
+            for (Electricity account : electricityList) {
+                double previousReading = previousElectricityReadings.getOrDefault(account.getAccountNumber(), 0.0);
+                double bill = account.calculateBill(previousReading);
+                sb.append(account.getName()).append(": $").append(String.format("%.2f", bill)).append("\n");
+            }
+        }
+        sb.append("Total Electricity: $").append(String.format("%.2f", electricityCost)).append("\n\n");
+        
+        sb.append("Gas Accounts:\n");
+        sb.append("-----------\n");
+        if (gasList.isEmpty()) {
+            sb.append("No gas accounts found.\n");
+        } else {
+            for (Gas account : gasList) {
+                double previousReading = previousGasReadings.getOrDefault(account.getAccountNumber(), 0.0);
+                double bill = account.calculateBill(previousReading);
+                sb.append(account.getName()).append(": $").append(String.format("%.2f", bill)).append("\n");
+            }
+        }
+        sb.append("Total Gas: $").append(String.format("%.2f", gasCost)).append("\n\n");
+        
+        sb.append("Water Accounts:\n");
+        sb.append("-------------\n");
+        if (waterList.isEmpty()) {
+            sb.append("No water accounts found.\n");
+        } else {
+            for (Water account : waterList) {
+                double previousReading = previousWaterReadings.getOrDefault(account.getAccountNumber(), 0.0);
+                double bill = account.calculateBill(previousReading);
+                sb.append(account.getName()).append(": $").append(String.format("%.2f", bill)).append("\n");
+            }
+        }
+        sb.append("Total Water: $").append(String.format("%.2f", waterCost)).append("\n\n");
+        
+        sb.append("Subscriptions:\n");
+        sb.append("-------------\n");
+        if (subscriptionList.isEmpty()) {
+            sb.append("No subscriptions found.\n");
+        } else {
+            for (Subscription subscription : subscriptionList) {
+                sb.append(subscription.getName()).append(": $").append(String.format("%.2f", subscription.getMonthlyCost())).append("\n");
+            }
+        }
+        sb.append("Total Subscriptions: $").append(String.format("%.2f", subscriptionCost)).append("\n\n");
+        
+        sb.append("===========================\n");
+        sb.append("TOTAL MONTHLY COST: $").append(String.format("%.2f", totalCost)).append("\n");
+        
+        summaryArea.setText(sb.toString());
+        
+        // Add to scroll pane
+        JScrollPane scrollPane = new JScrollPane(summaryArea);
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Add chart panel
+        JPanel chartPanel = createSummaryChart(electricityCost, gasCost, waterCost, subscriptionCost);
+        chartPanel.setPreferredSize(new Dimension(contentPanel.getWidth(), 250));
+        contentPanel.add(chartPanel, BorderLayout.SOUTH);
+        
+        // Add components to summary panel
+        summaryPanel.add(titleLabel, BorderLayout.NORTH);
+        summaryPanel.add(contentPanel, BorderLayout.CENTER);
+        
+        // Add summary panel to the main content panel
+        this.contentPanel.add(summaryPanel, BorderLayout.CENTER);
+        
+        // Refresh UI
+        this.contentPanel.revalidate();
+        this.contentPanel.repaint();
     }
 }
