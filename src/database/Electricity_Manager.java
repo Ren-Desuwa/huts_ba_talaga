@@ -11,7 +11,7 @@ import java.util.UUID;
  */
 public class Electricity_Manager {
     private Connection connection;
-    private ReadingHistoryManager historyManager;
+    private Reading_History_Manager historyManager;
     
     public Electricity_Manager(Connection connection) {
         this.connection = connection;

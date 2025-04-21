@@ -11,29 +11,29 @@ import java.util.UUID;
  * Core Database Manager that initializes the connection and delegates operations
  * to specialized managers for each utility type
  */
-public class DatabaseManager {
+public class Database_Manager {
     private Connection connection;
     private static final String DB_URL = "jdbc:sqlite:house_utilities.db";
     
     // Specialized managers
-    private ElectricityManager electricityManager;
-    private GasManager gasManager;
-    private WaterManager waterManager;
-    private SubscriptionManager subscriptionManager;
-    private BillManager billManager;
-    private ReadingHistoryManager readingHistoryManager;
+    private Electricity_Manager electricityManager;
+    private Gas_Manager gasManager;
+    private Water_Manager waterManager;
+    private Subscription_Manager subscriptionManager;
+    private Bill_Manager billManager;
+    private Reading_History_Manager readingHistoryManager;
     
     // Singleton pattern
-    private static DatabaseManager instance;
+    private static Database_Manager instance;
     
-    public static DatabaseManager getInstance() {
+    public static Database_Manager getInstance() {
         if (instance == null) {
-            instance = new DatabaseManager();
+            instance = new Database_Manager();
         }
         return instance;
     }
     
-    private DatabaseManager() {
+    private Database_Manager() {
         try {
             // Load the SQLite JDBC driver
             Class.forName("org.sqlite.JDBC");
@@ -53,12 +53,12 @@ public class DatabaseManager {
     }
     
     private void initializeManagers() {
-        electricityManager = new ElectricityManager(connection);
-        gasManager = new GasManager(connection);
-        waterManager = new WaterManager(connection);
-        subscriptionManager = new SubscriptionManager(connection);
-        billManager = new BillManager(connection);
-        readingHistoryManager = new ReadingHistoryManager(connection);
+        electricityManager = new Electricity_Manager(connection);
+        gasManager = new Gas_Manager(connection);
+        waterManager = new Water_Manager(connection);
+        subscriptionManager = new Subscription_Manager(connection);
+        billManager = new Bill_Manager(connection);
+        readingHistoryManager = new Reading_History_Manager(connection);
     }
     
     private void createTables() {
