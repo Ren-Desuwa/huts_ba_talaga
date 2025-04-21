@@ -1,5 +1,5 @@
 package views;
 
-public class GasPanel {
+public class Gas_Panel {
 
 }

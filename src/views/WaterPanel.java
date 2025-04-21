@@ -1,5 +1,5 @@
 package views;
 
-public class WaterPanel {
+public class Water_Panel {
 
 }
