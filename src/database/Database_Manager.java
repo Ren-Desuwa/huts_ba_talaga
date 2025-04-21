@@ -554,4 +554,446 @@ public class Database_Manager {
             e.printStackTrace();
         }
     }
+ // Methods to update Electricity information
+    public boolean updateElectricity(Electricity electricity) {
+        String sql = "UPDATE electricity SET name = ?, provider = ?, rate_per_kwh = ?, meter_reading = ? WHERE account_number = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, electricity.getName());
+            pstmt.setString(2, electricity.getProvider());
+            pstmt.setDouble(3, electricity.getRatePerKwh());
+            pstmt.setDouble(4, electricity.getMeterReading());
+            pstmt.setString(5, electricity.getAccountNumber());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            // If the record was updated successfully, save the new reading to history
+            if (rowsAffected > 0) {
+                // Get utility ID
+                String idSql = "SELECT id FROM electricity WHERE account_number = ?";
+                PreparedStatement idStmt = connection.prepareStatement(idSql);
+                idStmt.setString(1, electricity.getAccountNumber());
+                ResultSet rs = idStmt.executeQuery();
+                
+                if (rs.next()) {
+                    String utilityId = rs.getString("id");
+                    // Save new reading to history
+                    saveReadingHistory(utilityId, "electricity", electricity.getMeterReading());
+                }
+                
+                return true;
+            }
+            
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteElectricity(String id) {
+        String sql = "DELETE FROM electricity WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Electricity getElectricityById(String id) {
+        String sql = "SELECT * FROM electricity WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                String accountNumber = rs.getString("account_number");
+                double ratePerKwh = rs.getDouble("rate_per_kwh");
+                double meterReading = rs.getDouble("meter_reading");
+                
+                Electricity electricity = new Electricity(name, provider, accountNumber, ratePerKwh);
+                electricity.setMeterReading(meterReading);
+                return electricity;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    public Electricity getElectricityByAccountNumber(String accountNumber) {
+        String sql = "SELECT * FROM electricity WHERE account_number = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, accountNumber);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                double ratePerKwh = rs.getDouble("rate_per_kwh");
+                double meterReading = rs.getDouble("meter_reading");
+                
+                Electricity electricity = new Electricity(name, provider, accountNumber, ratePerKwh);
+                electricity.setMeterReading(meterReading);
+                return electricity;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    // Methods to update Gas information
+    public boolean updateGas(Gas gas) {
+        String sql = "UPDATE gas SET name = ?, provider = ?, rate_per_unit = ?, meter_reading = ? WHERE account_number = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, gas.getName());
+            pstmt.setString(2, gas.getProvider());
+            pstmt.setDouble(3, gas.getRatePerUnit());
+            pstmt.setDouble(4, gas.getMeterReading());
+            pstmt.setString(5, gas.getAccountNumber());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            // If the record was updated successfully, save the new reading to history
+            if (rowsAffected > 0) {
+                // Get utility ID
+                String idSql = "SELECT id FROM gas WHERE account_number = ?";
+                PreparedStatement idStmt = connection.prepareStatement(idSql);
+                idStmt.setString(1, gas.getAccountNumber());
+                ResultSet rs = idStmt.executeQuery();
+                
+                if (rs.next()) {
+                    String utilityId = rs.getString("id");
+                    // Save new reading to history
+                    saveReadingHistory(utilityId, "gas", gas.getMeterReading());
+                }
+                
+                return true;
+            }
+            
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteGas(String id) {
+        String sql = "DELETE FROM gas WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Gas getGasById(String id) {
+        String sql = "SELECT * FROM gas WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                String accountNumber = rs.getString("account_number");
+                double ratePerUnit = rs.getDouble("rate_per_unit");
+                double meterReading = rs.getDouble("meter_reading");
+                
+                Gas gas = new Gas(name, provider, accountNumber, ratePerUnit);
+                gas.setMeterReading(meterReading);
+                return gas;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    public Gas getGasByAccountNumber(String accountNumber) {
+        String sql = "SELECT * FROM gas WHERE account_number = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, accountNumber);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                double ratePerUnit = rs.getDouble("rate_per_unit");
+                double meterReading = rs.getDouble("meter_reading");
+                
+                Gas gas = new Gas(name, provider, accountNumber, ratePerUnit);
+                gas.setMeterReading(meterReading);
+                return gas;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    // Methods to update Water information
+    public boolean updateWater(Water water) {
+        String sql = "UPDATE water SET name = ?, provider = ?, rate_per_cubic_meter = ?, meter_reading = ? WHERE account_number = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, water.getName());
+            pstmt.setString(2, water.getProvider());
+            pstmt.setDouble(3, water.getRatePerCubicMeter());
+            pstmt.setDouble(4, water.getMeterReading());
+            pstmt.setString(5, water.getAccountNumber());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            
+            // If the record was updated successfully, save the new reading to history
+            if (rowsAffected > 0) {
+                // Get utility ID
+                String idSql = "SELECT id FROM water WHERE account_number = ?";
+                PreparedStatement idStmt = connection.prepareStatement(idSql);
+                idStmt.setString(1, water.getAccountNumber());
+                ResultSet rs = idStmt.executeQuery();
+                
+                if (rs.next()) {
+                    String utilityId = rs.getString("id");
+                    // Save new reading to history
+                    saveReadingHistory(utilityId, "water", water.getMeterReading());
+                }
+                
+                return true;
+            }
+            
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteWater(String id) {
+        String sql = "DELETE FROM water WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Water getWaterById(String id) {
+        String sql = "SELECT * FROM water WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                String accountNumber = rs.getString("account_number");
+                double ratePerCubicMeter = rs.getDouble("rate_per_cubic_meter");
+                double meterReading = rs.getDouble("meter_reading");
+                
+                Water water = new Water(name, provider, accountNumber, ratePerCubicMeter);
+                water.setMeterReading(meterReading);
+                return water;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    public Water getWaterByAccountNumber(String accountNumber) {
+        String sql = "SELECT * FROM water WHERE account_number = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, accountNumber);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                double ratePerCubicMeter = rs.getDouble("rate_per_cubic_meter");
+                double meterReading = rs.getDouble("meter_reading");
+                
+                Water water = new Water(name, provider, accountNumber, ratePerCubicMeter);
+                water.setMeterReading(meterReading);
+                return water;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    // Methods to update bill status
+    public void markBillAsPaid(String billId, LocalDate paidDate) {
+        String sql = "UPDATE bill SET is_paid = 1, paid_date = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, paidDate.toString());
+            pstmt.setString(2, billId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean deleteBill(String billId) {
+        String sql = "DELETE FROM bill WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, billId);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    // Methods for subscription management
+    public void updateSubscription(String id, Subscription subscription) {
+        String sql = "UPDATE subscription SET name = ?, provider = ?, account_number = ?, " +
+                     "type = ?, monthly_cost = ?, next_billing_date = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, subscription.getName());
+            pstmt.setString(2, subscription.getProvider());
+            pstmt.setString(3, subscription.getAccountNumber());
+            pstmt.setString(4, subscription.getType().toString());
+            pstmt.setDouble(5, subscription.getMonthlyCost());
+            pstmt.setString(6, subscription.getNextBillingDate().toString());
+            pstmt.setString(7, id);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public boolean deleteSubscription(String id) {
+        String sql = "DELETE FROM subscription WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public Subscription getSubscriptionById(String id) {
+        String sql = "SELECT * FROM subscription WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                String accountNumber = rs.getString("account_number");
+                SubscriptionType type = SubscriptionType.valueOf(rs.getString("type"));
+                double monthlyCost = rs.getDouble("monthly_cost");
+                LocalDate nextBillingDate = LocalDate.parse(rs.getString("next_billing_date"));
+                
+                Subscription subscription = new Subscription(name, provider, accountNumber, type, monthlyCost);
+                subscription.setNextBillingDate(nextBillingDate);
+                return subscription;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return null;
+    }
+
+    // Methods to get reading history
+    public List<ReadingHistory> getReadingHistory(String utilityId, String utilityType) {
+        List<ReadingHistory> history = new ArrayList<>();
+        String sql = "SELECT * FROM reading_history WHERE utility_id = ? AND utility_type = ? ORDER BY reading_date ASC";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, utilityId);
+            pstmt.setString(2, utilityType);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                String id = rs.getString("id");
+                LocalDate readingDate = LocalDate.parse(rs.getString("reading_date"));
+                double readingValue = rs.getDouble("reading_value");
+                
+                ReadingHistory entry = new ReadingHistory(id, utilityId, utilityType, readingDate, readingValue);
+                history.add(entry);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return history;
+    }
+
+    // Helper class for reading history
+    public static class ReadingHistory {
+        private String id;
+        private String utilityId;
+        private String utilityType;
+        private LocalDate readingDate;
+        private double readingValue;
+        
+        public ReadingHistory(String id, String utilityId, String utilityType, LocalDate readingDate, double readingValue) {
+            this.id = id;
+            this.utilityId = utilityId;
+            this.utilityType = utilityType;
+            this.readingDate = readingDate;
+            this.readingValue = readingValue;
+        }
+        
+        public String getId() {
+            return id;
+        }
+        
+        public String getUtilityId() {
+            return utilityId;
+        }
+        
+        public String getUtilityType() {
+            return utilityType;
+        }
+        
+        public LocalDate getReadingDate() {
+            return readingDate;
+        }
+        
+        public double getReadingValue() {
+            return readingValue;
+        }
+    }
 }
