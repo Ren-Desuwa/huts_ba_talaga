@@ -2,7 +2,11 @@ package views;
 
 import models.*;
 import javax.swing.*;
+
+import database.Database_Manager;
+
 import java.awt.*;
+import java.awt.List;
 import java.awt.event.*;
 import java.util.*;
 
@@ -18,12 +22,18 @@ public class Main_Frame extends JFrame {
     private static Map<String, Double> previousGasReadings = new HashMap<>();
     private static Map<String, Double> previousWaterReadings = new HashMap<>();
     
-    // UI components
+ // UI components
     private JPanel mainPanel;
     private JPanel menuPanel;
     private JPanel contentPanel;
     
+ // Database manager instance
+    private Database_Manager dbManager;
+    
     public Main_Frame() {
+        // Initialize database manager
+        dbManager = Database_Manager.getInstance();
+        
         // Set up frame properties
         setTitle("House Utility Management System");
         setSize(800, 600);
@@ -58,14 +68,17 @@ public class Main_Frame extends JFrame {
         
         // Add sample data
         addSampleData();
+        
+        // Add window listener to close database connection when application closes
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                dbManager.closeConnection();
+            }
+        });
     }
-    
-    private void addSampleData() {
-		// TODO Auto-generated method stub
-		
-	}
 
-	private void addMenuButtons() {
+    private void addMenuButtons() {
         JButton dashboardBtn = createMenuButton("Dashboard");
         JButton electricityBtn = createMenuButton("Electricity");
         JButton gasBtn = createMenuButton("Gas");
@@ -98,13 +111,8 @@ public class Main_Frame extends JFrame {
         menuPanel.add(summaryBtn);
         menuPanel.add(Box.createVerticalGlue());
     }
-    
-    private Object showSummaryPanel() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-	private JButton createMenuButton(String text) {
+    private JButton createMenuButton(String text) {
         JButton button = new JButton(text);
         button.setAlignmentX(Component.CENTER_ALIGNMENT);
         button.setMaximumSize(new Dimension(180, 40));
@@ -130,7 +138,7 @@ public class Main_Frame extends JFrame {
         return button;
     }
     
-    private JLabel createTitleLabel(String text) {
+	private JLabel createTitleLabel(String text) {
         JLabel label = new JLabel(text);
         label.setAlignmentX(Component.CENTER_ALIGNMENT);
         label.setForeground(Color.WHITE);
@@ -138,9 +146,15 @@ public class Main_Frame extends JFrame {
         return label;
     }
     
-    private void showWelcomePanel() {
+	private void showWelcomePanel() {
         // Clear existing content
         contentPanel.removeAll();
+        
+        // Get data from database
+        List<Electricity> electricityAccounts = dbManager.getAllElectricity();
+        List<Gas> gasAccounts = dbManager.getAllGas();
+        List<Water> waterAccounts = dbManager.getAllWater();
+        List<Subscription> subscriptions = dbManager.getAllSubscriptions();
         
         // Create welcome panel
         JPanel welcomePanel = new JPanel(new BorderLayout());
@@ -670,5 +684,45 @@ public class Main_Frame extends JFrame {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         
         dialog.setVisible(true);
+    }
+    
+    private void addSampleData() {
+        // Check if we already have data in the database
+        List<Electricity> electricityAccounts = dbManager.getAllElectricity();
+        List<Gas> gasAccounts = dbManager.getAllGas();
+        List<Water> waterAccounts = dbManager.getAllWater();
+        List<Subscription> subscriptions = dbManager.getAllSubscriptions();
+        
+        // Only add sample data if no data exists
+        if (electricityAccounts.isEmpty() && gasAccounts.isEmpty() && waterAccounts.isEmpty() && subscriptions.isEmpty()) {
+            // Add sample electricity account
+            Electricity electricity = new Electricity("Home Electricity", "Power Company", "EL-12345", 0.12);
+            electricity.setMeterReading(1000.0);
+            dbManager.saveElectricity(electricity);
+            
+            // Add sample gas account
+            Gas gas = new Gas("Home Gas", "Gas Company", "GS-67890", 0.85);
+            gas.setMeterReading(500.0);
+            dbManager.saveGas(gas);
+            
+            // Add sample water account
+            Water water = new Water("Home Water", "Water Company", "WT-54321", 2.5);
+            water.setMeterReading(150.0);
+            dbManager.saveWater(water);
+            
+            // Add sample subscriptions
+            Subscription internet = new Subscription("Home Internet", "ISP Provider", "NET-123", SubscriptionType.INTERNET, 49.99);
+            dbManager.saveSubscription(internet);
+            
+            Subscription streaming = new Subscription("Movie Streaming", "StreamFlix", "STR-456", SubscriptionType.STREAMING, 14.99);
+            dbManager.saveSubscription(streaming);
+            
+            Subscription mobile = new Subscription("Mobile Phone", "TeleCom", "PHN-789", SubscriptionType.PHONE, 39.99);
+            dbManager.saveSubscription(mobile);
+            
+            JOptionPane.showMessageDialog(this, 
+                "Sample data has been added to the database.", 
+                "Sample Data", JOptionPane.INFORMATION_MESSAGE);
+        }
     }
 }
