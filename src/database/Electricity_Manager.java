@@ -114,6 +114,8 @@ public class Electricity_Manager {
         return previousReading;
     }
     
+    
+    
     public boolean updateElectricity(Electricity electricity) {
         String sql = "UPDATE electricity SET name = ?, provider = ?, rate_per_kwh = ?, meter_reading = ? WHERE account_number = ?";
         
@@ -150,12 +152,11 @@ public class Electricity_Manager {
         }
     }
 
-    public boolean deleteElectricity(String id) {
-        String sql = "DELETE FROM electricity WHERE id = ?";
-        
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, id);
-            int rowsAffected = pstmt.executeUpdate();
+    public boolean deleteElectricity(String accountNumber) {
+        String sql = "DELETE FROM electricity WHERE account_number = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, accountNumber);
+            int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();

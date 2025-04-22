@@ -212,41 +212,4 @@ public class Database_Manager {
             e.printStackTrace();
         }
     }
-    public boolean deleteElectricity(String accountNumber) {
-        String sql = "DELETE FROM electricity WHERE account_number = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, accountNumber);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    // Gas_Manager.java
-    public boolean deleteGas(String accountNumber) {
-        String sql = "DELETE FROM gas WHERE account_number = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, accountNumber);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    // Water_Manager.java
-    public boolean deleteWater(String accountNumber) {
-        String sql = "DELETE FROM water WHERE account_number = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setString(1, accountNumber);
-            int rowsAffected = stmt.executeUpdate();
-            return rowsAffected > 0;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
 }

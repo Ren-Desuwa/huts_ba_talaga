@@ -148,12 +148,12 @@ public class Water_Manager {
         }
     }
 
-    public boolean deleteWater(String id) {
-        String sql = "DELETE FROM water WHERE id = ?";
-        
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, id);
-            int rowsAffected = pstmt.executeUpdate();
+ // Water_Manager.java
+    public boolean deleteWater(String accountNumber) {
+        String sql = "DELETE FROM water WHERE account_number = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, accountNumber);
+            int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();

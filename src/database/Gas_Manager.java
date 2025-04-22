@@ -148,12 +148,12 @@ public class Gas_Manager {
         }
     }
 
-    public boolean deleteGas(String id) {
-        String sql = "DELETE FROM gas WHERE id = ?";
-        
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, id);
-            int rowsAffected = pstmt.executeUpdate();
+ // Gas_Manager.java
+    public boolean deleteGas(String accountNumber) {
+        String sql = "DELETE FROM gas WHERE account_number = ?";
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, accountNumber);
+            int rowsAffected = stmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {
             e.printStackTrace();
