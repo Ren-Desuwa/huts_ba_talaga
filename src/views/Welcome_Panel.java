@@ -75,7 +75,7 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
         
         headerPanel.add(iconLabel);
         headerPanel.add(welcomeLabel);
-        headerPanel.setBounds(200, 40, 550, 100);
+        headerPanel.setBounds(200, 40, 500, 50);
         contentPanel.add(headerPanel);
         
         // Initialize stats panel
