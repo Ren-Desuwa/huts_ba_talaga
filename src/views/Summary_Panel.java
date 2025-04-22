@@ -266,7 +266,9 @@ public class Summary_Panel {
         for (int i = 0; i < tableModel.getRowCount(); i++) {
             String category = (String) tableModel.getValueAt(i, 0);
             String costStr = (String) tableModel.getValueAt(i, 5);
-            double cost = Double.parseDouble(costStr);
+            
+            // Remove the $ sign and parse the cost
+            double cost = Double.parseDouble(costStr.replace("$", "").trim());
             
             costByCategory.put(category, costByCategory.getOrDefault(category, 0.0) + cost);
         }

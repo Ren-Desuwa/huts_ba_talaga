@@ -339,8 +339,8 @@ public class Sign_Up_Panel extends JPanel {
                 // Registration was successful and user is automatically authenticated
                 JOptionPane.showMessageDialog(this, "Registration successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 
-                // Navigate directly to the main dashboard with the new user
-                mainFrame.showMainDashboard(username);
+                // Navigate to the main content panel
+                mainFrame.showMainContent();
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to register user", "Error", JOptionPane.ERROR_MESSAGE);
             }

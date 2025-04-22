@@ -57,14 +57,17 @@ public class Gas_Panel implements Utility_Panel {
         JButton addButton = new JButton("Add Account");
         JButton updateButton = new JButton("Update Reading");
         JButton calculateButton = new JButton("Calculate Bill");
+        JButton removeButton = new JButton("Remove Account");
         
         addButton.addActionListener(e -> addGasAccount());
         updateButton.addActionListener(e -> updateGasReading());
         calculateButton.addActionListener(e -> calculateGasBill());
+        removeButton.addActionListener(e -> removeGasAccount());
         
         buttonsPanel.add(addButton);
         buttonsPanel.add(updateButton);
         buttonsPanel.add(calculateButton);
+        buttonsPanel.add(removeButton);
         
         // Create table for data
         JPanel tablePanel = new JPanel(new BorderLayout());
@@ -93,6 +96,68 @@ public class Gas_Panel implements Utility_Panel {
         
         gasPanel.revalidate();
         gasPanel.repaint();
+    }
+
+    private void removeGasAccount() {
+        if (gasAccounts.isEmpty()) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "No gas accounts found.", 
+                "No Accounts", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Create a dialog for selecting an account to remove
+        JDialog dialog = new JDialog(parentFrame, "Remove Gas Account", true);
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(parentFrame);
+        dialog.setLayout(new BorderLayout());
+        
+        JPanel formPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel accountLabel = new JLabel("Select Account:");
+        JComboBox<String> accountCombo = new JComboBox<>();
+        
+        for (Gas account : gasAccounts) {
+            accountCombo.addItem(account.getName() + " (" + account.getAccountNumber() + ")");
+        }
+        
+        formPanel.add(accountLabel);
+        formPanel.add(accountCombo);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton cancelButton = new JButton("Cancel");
+        JButton removeButton = new JButton("Remove");
+        
+        cancelButton.addActionListener(e -> dialog.dispose());
+        removeButton.addActionListener(e -> {
+            int index = accountCombo.getSelectedIndex();
+            Gas selected = gasAccounts.get(index);
+            
+            // Confirm deletion
+            int confirm = JOptionPane.showConfirmDialog(dialog,
+                "Are you sure you want to remove the account: " + selected.getName() + "?",
+                "Confirm Removal", JOptionPane.YES_NO_OPTION);
+                
+            if (confirm == JOptionPane.YES_OPTION) {
+                // Remove from database
+                gasManager.deleteGas(selected.getAccountNumber());
+                
+                // Remove from previous readings
+                previousGasReadings.remove(selected.getAccountNumber());
+                
+                dialog.dispose();
+                refreshPanel(); // Refresh the panel
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(removeButton);
+        
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
     }
     
     private void addGasAccount() {

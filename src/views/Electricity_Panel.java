@@ -55,14 +55,17 @@ public class Electricity_Panel implements Utility_Panel {
         JButton addButton = new JButton("Add Account");
         JButton updateButton = new JButton("Update Reading");
         JButton calculateButton = new JButton("Calculate Bill");
+        JButton removeButton = new JButton("Remove Account");
         
         addButton.addActionListener(e -> addElectricityAccount());
         updateButton.addActionListener(e -> updateElectricityReading());
         calculateButton.addActionListener(e -> calculateElectricityBill());
+        removeButton.addActionListener(e -> removeElectricityAccount());
         
         buttonsPanel.add(addButton);
         buttonsPanel.add(updateButton);
         buttonsPanel.add(calculateButton);
+        buttonsPanel.add(removeButton);
         
         // Create table for data
         JPanel tablePanel = new JPanel(new BorderLayout());
@@ -93,6 +96,7 @@ public class Electricity_Panel implements Utility_Panel {
         electricityPanel.repaint();
     }
     
+ // Fix for the addElectricityAccount() method in Electricity_Panel.java
     private void addElectricityAccount() {
         // Create a dialog for adding a new electricity account
         JDialog dialog = new JDialog(parentFrame, "Add Electricity Account", true);
@@ -144,10 +148,16 @@ public class Electricity_Panel implements Utility_Panel {
                 
                 Electricity electricity = new Electricity(name, provider, accountNumber, rate);
                 electricity.setMeterReading(reading);
+                // Remove setting dateAdded since the database doesn't have that column
                 
                 // Save to database
-                electricityAccounts = electricityManager.getAllElectricity();
+                electricityManager.addElectricity(electricity);
+                
+                // Store the initial reading as the previous reading
                 previousElectricityReadings.put(accountNumber, reading);
+                
+                // Refresh the data from the database
+                electricityAccounts = electricityManager.getAllElectricity();
                 
                 dialog.dispose();
                 refreshPanel(); // Refresh the panel
@@ -211,11 +221,12 @@ public class Electricity_Panel implements Utility_Panel {
                 double newReading = Double.parseDouble(readingField.getText());
                 
                 Electricity selected = electricityAccounts.get(index);
+                // Store current reading as previous reading
                 previousElectricityReadings.put(selected.getAccountNumber(), selected.getMeterReading());
                 selected.setMeterReading(newReading);
                 
-                // Update in database
-                electricityAccounts = electricityManager.getAllElectricity();
+                // Update in database - THIS WAS MISSING
+                electricityManager.updateElectricity(selected);
                 
                 dialog.dispose();
                 refreshPanel(); // Refresh the panel
@@ -234,7 +245,7 @@ public class Electricity_Panel implements Utility_Panel {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         
         dialog.setVisible(true);
-    }
+    }	
     
     private void calculateElectricityBill() {
         if (electricityAccounts.isEmpty()) {
@@ -308,6 +319,69 @@ public class Electricity_Panel implements Utility_Panel {
         
         dialog.setVisible(true);
     }
+    
+    private void removeElectricityAccount() {
+        if (electricityAccounts.isEmpty()) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "No electricity accounts found.", 
+                "No Accounts", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        
+        // Create a dialog for selecting an account to remove
+        JDialog dialog = new JDialog(parentFrame, "Remove Electricity Account", true);
+        dialog.setSize(400, 200);
+        dialog.setLocationRelativeTo(parentFrame);
+        dialog.setLayout(new BorderLayout());
+        
+        JPanel formPanel = new JPanel(new GridLayout(1, 2, 10, 10));
+        formPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel accountLabel = new JLabel("Select Account:");
+        JComboBox<String> accountCombo = new JComboBox<>();
+        
+        for (Electricity account : electricityAccounts) {
+            accountCombo.addItem(account.getName() + " (" + account.getAccountNumber() + ")");
+        }
+        
+        formPanel.add(accountLabel);
+        formPanel.add(accountCombo);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton cancelButton = new JButton("Cancel");
+        JButton removeButton = new JButton("Remove");
+        
+        cancelButton.addActionListener(e -> dialog.dispose());
+        removeButton.addActionListener(e -> {
+            int index = accountCombo.getSelectedIndex();
+            Electricity selected = electricityAccounts.get(index);
+            
+            // Confirm deletion
+            int confirm = JOptionPane.showConfirmDialog(dialog,
+                "Are you sure you want to remove the account: " + selected.getName() + "?",
+                "Confirm Removal", JOptionPane.YES_NO_OPTION);
+                
+            if (confirm == JOptionPane.YES_OPTION) {
+                // Remove from database
+                electricityManager.deleteElectricity(selected.getAccountNumber());
+                
+                // Remove from previous readings
+                previousElectricityReadings.remove(selected.getAccountNumber());
+                
+                dialog.dispose();
+                refreshPanel(); // Refresh the panel
+            }
+        });
+        
+        buttonPanel.add(cancelButton);
+        buttonPanel.add(removeButton);
+        
+        dialog.add(formPanel, BorderLayout.CENTER);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        dialog.setVisible(true);
+    }
+
     
     public java.util.List<Electricity> getElectricityAccounts() {
         return electricityAccounts;
