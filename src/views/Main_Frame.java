@@ -17,11 +17,19 @@ public class Main_Frame extends JFrame {
     private JPanel mainPanel;
     private JPanel menuPanel;
     private JPanel contentPanel;
+    private final CardLayout cardLayout;
+    
+    // Panels
     private Login_Panel loginPanel;
     private Sign_Up_Panel signUpPanel;
     private Forgot_Password_Panel forgotPasswordPanel;
     private Main_Content_Panel mainContentPanel;
-    private final CardLayout cardLayout;
+    
+    private static final String LOGIN_PANEL = "LOGIN_PANEL";
+    private static final String SIGNUP_PANEL = "SIGNUP_PANEL";
+    private static final String FORGOT_PASSWORD_PANEL = "FORGOT_PASSWORD_PANEL";
+    private static final String MAIN_CONTENT_PANEL = "MAIN_CONTENT_PANEL";
+    
     
     // Panel managers
     private Welcome_Panel welcomePanel;
@@ -39,65 +47,42 @@ public class Main_Frame extends JFrame {
     private Water_Manager waterManager;
     
     
-    private static final String LOGIN_PANEL = "LOGIN_PANEL";
-    private static final String SIGNUP_PANEL = "SIGNUP_PANEL";
-    private static final String FORGOT_PASSWORD_PANEL = "FORGOT_PASSWORD_PANEL";
-    private static final String MAIN_CONTENT_PANEL = "MAIN_CONTENT_PANEL";
-    
     public Main_Frame() {
         // Initialize database manager
-        dbManager = Database_Manager.getInstance();
+        dbManager = new Database_Manager();
         
-        // Set up frame properties
-        setTitle("House Utility Management System");
-        setSize(800, 600);
+        // Set up window properties
+        setTitle("User Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setMinimumSize(new Dimension(900, 450));
+        setResizable(false);
+        
+        // Create card layout and content panel
+        cardLayout = new CardLayout();
+        contentPanel = new JPanel(cardLayout);
+        
+        // Initialize panels
+        initPanels();
+        
+        // Add panels to content pane
+        getContentPane().add(contentPanel);
+        
+        // Center on screen
         setLocationRelativeTo(null);
+    }
+    
+    private void initPanels() {
+        // Create panels
+        loginPanel = new Login_Panel(this, dbManager);
+        signUpPanel = new Sign_Up_Panel(this, dbManager);
+        forgotPasswordPanel = new Forgot_Password_Panel(this, dbManager);
+        mainContentPanel = new Main_Content_Panel(this, dbManager);
         
-        // Create main panel with BorderLayout
-        mainPanel = new JPanel(new BorderLayout());
-        
-        // Create menu panel on the left
-        menuPanel = new JPanel();
-        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
-        menuPanel.setBackground(new Color(60, 63, 65));
-        menuPanel.setPreferredSize(new Dimension(200, getHeight()));
-        
-        // Create content panel for the right
-        contentPanel = new JPanel(new BorderLayout());
-        contentPanel.setBackground(new Color(240, 240, 240));
-        
-        // Initialize panel managers
-        welcomePanel = new Welcome_Panel(this, dbManager);
-        electricityPanel = new Electricity_Panel(this, previousElectricityReadings);
-        gasPanel = new Gas_Panel(this, previousGasReadings);
-        waterPanel = new Water_Panel(this, previousWaterReadings);
-        subscriptionPanel = new Subscription_Panel(this);
-        summaryPanel = new Summary_Panel(this, previousElectricityReadings, previousGasReadings, previousWaterReadings);
-        
-        // Add welcome panel to content area
-        showWelcomePanel();
-        
-        // Create menu buttons
-        addMenuButtons();
-        
-        // Add panels to the main frame
-        mainPanel.add(menuPanel, BorderLayout.WEST);
-        mainPanel.add(contentPanel, BorderLayout.CENTER);
-        
-        // Add main panel to frame
-        add(mainPanel);
-        
-        // Add sample data
-        addSampleData();
-        
-        // Add window listener to close database connection when application closes
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                dbManager.closeConnection();
-            }
-        });
+        // Add panels to content panel with unique identifiers
+        contentPanel.add(loginPanel, LOGIN_PANEL);
+        contentPanel.add(signUpPanel, SIGNUP_PANEL);
+        contentPanel.add(forgotPasswordPanel, FORGOT_PASSWORD_PANEL);
+        contentPanel.add(mainContentPanel, MAIN_CONTENT_PANEL);
     }
 
     private void addMenuButtons() {
@@ -263,5 +248,66 @@ public class Main_Frame extends JFrame {
     // Accessor methods that might be needed by panels
     public Database_Manager getDbManager() {
         return dbManager;
+    }
+    
+    public void showLoginPanel() {
+        loginPanel.refreshPanel();
+        cardLayout.show(contentPanel, LOGIN_PANEL);
+    }
+    
+    /**
+     * Shows the sign up panel
+     */
+    public void showSignUpPanel() {
+        signUpPanel.refreshPanel();
+        cardLayout.show(contentPanel, SIGNUP_PANEL);
+    }
+    
+    /**
+     * Shows the forgot password panel
+     */
+    public void showForgotPasswordPanel() {
+        forgotPasswordPanel.refreshPanel();
+        cardLayout.show(contentPanel, FORGOT_PASSWORD_PANEL);
+    }
+    
+    /**
+     * Shows the main content panel after successful login
+     */
+    public void showMainContent() {
+        mainContentPanel.refreshPanel();
+        cardLayout.show(contentPanel, MAIN_CONTENT_PANEL);
+    }
+    
+    /**
+     * Logs out the user and returns to login panel
+     */
+    public void logout() {
+        showLoginPanel();
+    }
+    
+    /**
+     * Application entry point
+     */
+    public static void main(String[] args) {
+        // Set Nimbus look and feel if available
+        try {
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
+            e.printStackTrace();
+        }
+        
+        // Create and display the application window
+        java.awt.EventQueue.invokeLater(() -> {
+            Main_Frame mainFrame = new Main_Frame();
+            mainFrame.setVisible(true);
+            // Start with login panel
+            mainFrame.showLoginPanel();
+        });
     }
 }
