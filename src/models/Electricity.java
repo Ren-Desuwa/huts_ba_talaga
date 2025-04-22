@@ -1,8 +1,11 @@
 package models;
 
+import java.time.LocalDate;
+
 public class Electricity extends Utility {
     private double meterReading;
     private double ratePerKwh;
+    private LocalDate dateAdded;  // New field
     
     public Electricity(String name, String provider, String accountNumber, double ratePerKwh) {
         super(name, provider, accountNumber);
@@ -20,4 +23,6 @@ public class Electricity extends Utility {
         double consumption = meterReading - previousReading;
         return consumption * ratePerKwh;
     }
+    public LocalDate getDateAdded() { return dateAdded; }
+    public void setDateAdded(LocalDate dateAdded) { this.dateAdded = dateAdded; }
 }

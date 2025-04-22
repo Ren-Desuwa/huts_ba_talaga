@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 public class Database_Manager {
     private Connection connection;
-    private static final String DB_URL = "jdbc:sqlite:house_utilities.db";
+    private static final String DB_URL = "jdbc:sqlite:data/huts.db";
     
     // Specialized managers
     private User_Manager userManager;

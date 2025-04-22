@@ -2,6 +2,7 @@ package database;
 
 import models.Electricity;
 import java.sql.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -20,7 +21,7 @@ public class Electricity_Manager {
     
     public void saveElectricity(Electricity electricity) {
         String id = UUID.randomUUID().toString();
-        String sql = "INSERT INTO electricity (id, name, provider, account_number, rate_per_kwh, meter_reading) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO electricity (id, name, provider, account_number, rate_per_kwh, meter_reading, date_added) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, id);
@@ -29,6 +30,7 @@ public class Electricity_Manager {
             pstmt.setString(4, electricity.getAccountNumber());
             pstmt.setDouble(5, electricity.getRatePerKwh());
             pstmt.setDouble(6, electricity.getMeterReading());
+            pstmt.setDate(7, java.sql.Date.valueOf(electricity.getDateAdded()));
             pstmt.executeUpdate();
             
             // Save initial reading to history
@@ -52,9 +54,11 @@ public class Electricity_Manager {
                 String accountNumber = rs.getString("account_number");
                 double ratePerKwh = rs.getDouble("rate_per_kwh");
                 double meterReading = rs.getDouble("meter_reading");
+                LocalDate dateAdded = rs.getDate("date_added").toLocalDate();
                 
                 Electricity electricity = new Electricity(name, provider, accountNumber, ratePerKwh);
                 electricity.setMeterReading(meterReading);
+                electricity.setDateAdded(dateAdded);
                 electricityList.add(electricity);
             }
             
@@ -208,5 +212,8 @@ public class Electricity_Manager {
         }
         
         return null;
+    }
+    public void addElectricity(Electricity electricity) {
+        saveElectricity(electricity);
     }
 }
