@@ -21,23 +21,25 @@ public class Main_Frame extends JFrame {
     
     // Panels
     private Login_Panel loginPanel;
-    private Sign_Up_Panel signUpPanel;
     private Forgot_Password_Panel forgotPasswordPanel;
-    private Main_Content_Panel mainContentPanel;
-    
-    private static final String LOGIN_PANEL = "LOGIN_PANEL";
-    private static final String SIGNUP_PANEL = "SIGNUP_PANEL";
-    private static final String FORGOT_PASSWORD_PANEL = "FORGOT_PASSWORD_PANEL";
-    private static final String MAIN_CONTENT_PANEL = "MAIN_CONTENT_PANEL";
-    
-    
-    // Panel managers
+    private Sign_Up_Panel signUpPanel;
     private Welcome_Panel welcomePanel;
     private Electricity_Panel electricityPanel;
     private Gas_Panel gasPanel;
     private Water_Panel waterPanel;
     private Subscription_Panel subscriptionPanel;
     private Summary_Panel summaryPanel;
+    
+    // Constants for panel names
+    private static final String MAIN_CONTENT_PANEL = "MAIN_CONTENT_PANEL";
+    private static final String LOGIN_PANEL = "login";
+    private static final String FORGOT_PASSWORD_PANEL = "forgot_password";
+    private static final String SIGNUP_PANEL = "signup";
+    private static final String WELCOME_PANEL = "welcome";
+    private static final String ELECTRICITY_PANEL = "electricity";
+    private static final String GAS_PANEL = "gas";
+    private static final String WATER_PANEL = "water";
+    private static final String SUBSCRIPTION_PANEL = "subscription";
     
     // Database manager instance
     private Database_Manager dbManager;
@@ -329,29 +331,78 @@ public class Main_Frame extends JFrame {
     public void logout() {
         showLoginPanel();
     }
-    
-    /**
-     * Application entry point
-     */
-    public static void main(String[] args) {
-        // Set Nimbus look and feel if available
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException e) {
-            e.printStackTrace();
-        }
+    public void showPanel(String panelName) {
+        // Refresh the panel before showing it
+        refreshPanel(panelName);
         
-        // Create and display the application window
-        java.awt.EventQueue.invokeLater(() -> {
-            Main_Frame mainFrame = new Main_Frame();
-            mainFrame.setVisible(true);
-            // Start with login panel
-            mainFrame.showLoginPanel();
-        });
+        // Show the panel
+        switch (panelName.toLowerCase()) {
+            case LOGIN_PANEL:
+                cardLayout.show(mainPanel, LOGIN_PANEL);
+                break;
+            case FORGOT_PASSWORD_PANEL:
+                cardLayout.show(mainPanel, FORGOT_PASSWORD_PANEL);
+                break;
+            case SIGNUP_PANEL:
+                cardLayout.show(mainPanel, SIGNUP_PANEL);
+                break;
+            case WELCOME_PANEL:
+                cardLayout.show(mainPanel, WELCOME_PANEL);
+                break;
+            case ELECTRICITY_PANEL:
+                cardLayout.show(mainPanel, ELECTRICITY_PANEL);
+                break;
+            case GAS_PANEL:
+                cardLayout.show(mainPanel, GAS_PANEL);
+                break;
+            case WATER_PANEL:
+                cardLayout.show(mainPanel, WATER_PANEL);
+                break;
+            case SUBSCRIPTION_PANEL:
+                cardLayout.show(mainPanel, SUBSCRIPTION_PANEL);
+                break;
+            default:
+                System.out.println("Invalid panel name: " + panelName);
+                break;
+        }
+    }
+    private void refreshPanel(String panelName) {
+        switch (panelName.toLowerCase()) {
+            case LOGIN_PANEL:
+                // Login panel may not need refreshing
+                break;
+            case FORGOT_PASSWORD_PANEL:
+                forgotPasswordPanel.refreshPanel();
+                break;
+            case SIGNUP_PANEL:
+                // If register panel has a refresh method
+                // registerPanel.refreshPanel();
+                break;
+            case WELCOME_PANEL:
+                welcomePanel.refreshPanel();
+                break;
+            case ELECTRICITY_PANEL:
+                electricityPanel.refreshPanel();
+                break;
+            case GAS_PANEL:
+                gasPanel.refreshPanel();
+                break;
+            case WATER_PANEL:
+                waterPanel.refreshPanel();
+                break;
+            case SUBSCRIPTION_PANEL:
+                subscriptionPanel.refreshPanel();
+                break;
+        }
+    }
+    private void revalidateAllPanels() {
+        forgotPasswordPanel.refreshPanel();
+        
+        // Call refresh on other panels if they have it
+        if (welcomePanel != null) welcomePanel.refreshPanel();
+        if (electricityPanel != null) electricityPanel.refreshPanel();
+        if (gasPanel != null) gasPanel.refreshPanel();
+        if (waterPanel != null) waterPanel.refreshPanel();
+        if (subscriptionPanel != null) subscriptionPanel.refreshPanel();
     }
 }

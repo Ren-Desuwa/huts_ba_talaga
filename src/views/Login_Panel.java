@@ -2,12 +2,12 @@ package views;
 
 import models.*;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 import database.User_Manager;
 
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
 
 public class Login_Panel extends JPanel {
     private final User_Manager userManager;
@@ -23,7 +23,7 @@ public class Login_Panel extends JPanel {
     private JLabel jlbl_Forgot_Password;
     private JLabel jlbl_Sign_Up;
     private JLabel jlbl_Account_Icon;
-    private JLabel jlbl_Background;
+    private JPanel contentPanel;
 
     /**
      * Creates new Login Panel
@@ -35,138 +35,177 @@ public class Login_Panel extends JPanel {
     }
 
     private void initComponents() {
-        jlbl_Login = new JLabel();
-        jbtn_Login = new JButton();
-        jtf_Username = new JTextField();
-        jpf_Password = new JPasswordField();
-        jlbl_Password = new JLabel();
-        jlbl_Username = new JLabel();
-        jlbl_Forgot_Password = new JLabel();
-        jlbl_Sign_Up = new JLabel();
-        jlbl_Account_Icon = new JLabel();
-        jlbl_Background = new JLabel();
-
+        // Set background and layout
         setBackground(new Color(35, 50, 90));
-        setMinimumSize(new Dimension(900, 410));
-        setPreferredSize(new Dimension(900, 410));
-        addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent evt) {
-                formMouseClicked(evt);
-            }
-        });
+        setLayout(new BorderLayout());
         
-        // Using null layout for absolute positioning (similar to AbsoluteLayout)
-        setLayout(null);
-
-        // Set up UI components with setBounds instead of AbsoluteConstraints
-        jlbl_Login.setBackground(new Color(255, 255, 255));
+        // Create content panel with BorderLayout
+        contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        
+        // Create form panel with responsive GridBagLayout
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        
+        // Initialize components
+        jlbl_Login = new JLabel("Log In");
         jlbl_Login.setFont(new Font("Segoe UI", 0, 24));
         jlbl_Login.setForeground(new Color(23, 22, 22));
         jlbl_Login.setHorizontalAlignment(SwingConstants.CENTER);
-        jlbl_Login.setText("Log In");
-        jlbl_Login.setToolTipText("");
-        jlbl_Login.setBounds(450, 60, 70, 32);
-        add(jlbl_Login);
-
+        
+        jlbl_Account_Icon = new JLabel();
+        jlbl_Account_Icon.setIcon(new ImageIcon(getClass().getResource("/assets/icon/AccountBlack.png")));
+        
+        jtf_Username = new JTextField("Enter Username");
+        jtf_Username.setForeground(new Color(23, 22, 22));
+        jtf_Username.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent evt) {
+                if ("Enter Username".equals(jtf_Username.getText())) {
+                    jtf_Username.setText("");
+                }
+            }
+            public void focusLost(FocusEvent evt) {
+                if ("".equals(jtf_Username.getText())) {
+                    jtf_Username.setText("Enter Username");
+                }
+            }
+        });
+        
+        jlbl_Username = new JLabel("Username");
+        jlbl_Username.setForeground(new Color(23, 22, 22));
+        
+        jpf_Password = new JPasswordField("Enter Password");
+        jpf_Password.setForeground(new Color(23, 22, 22));
+        jpf_Password.setEchoChar((char) 0);
+        jpf_Password.addFocusListener(new FocusAdapter() {
+            public void focusGained(FocusEvent evt) {
+                if ("Enter Password".equals(new String(jpf_Password.getPassword()))) {
+                    jpf_Password.setEchoChar('\u2022');
+                    jpf_Password.setText("");
+                }
+            }
+            public void focusLost(FocusEvent evt) {
+                if (new String(jpf_Password.getPassword()).isEmpty()) {
+                    jpf_Password.setEchoChar((char) 0);
+                    jpf_Password.setText("Enter Password");
+                }
+            }
+        });
+        
+        jlbl_Password = new JLabel("Password");
+        jlbl_Password.setForeground(new Color(23, 22, 22));
+        
+        jbtn_Login = new JButton("Log In");
         jbtn_Login.setBackground(new Color(226, 149, 90));
         jbtn_Login.setFont(new Font("Segoe UI", 0, 18));
         jbtn_Login.setForeground(new Color(255, 255, 255));
-        jbtn_Login.setText("Log In");
         jbtn_Login.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        jbtn_Login.setMaximumSize(new Dimension(93, 32));
-        jbtn_Login.setMinimumSize(new Dimension(93, 32));
-        jbtn_Login.setPreferredSize(new Dimension(93, 32));
         jbtn_Login.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
                 jbtn_LoginActionPerformed(evt);
             }
         });
-        jbtn_Login.setBounds(420, 300, 93, 32);
-        add(jbtn_Login);
-
-        jtf_Username.setBackground(new Color(255, 255, 255));
-        jtf_Username.setForeground(new Color(23, 22, 22));
-        jtf_Username.setText("Enter Username");
-        jtf_Username.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                jtf_UsernameFocusGained(evt);
-            }
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                jtf_UsernameFocusLost(evt);
-            }
-        });
-        jtf_Username.setBounds(410, 150, 120, 25);
-        add(jtf_Username);
-
-        jpf_Password.setForeground(new Color(23, 22, 22));
-        jpf_Password.setText("Enter Password");
-        jpf_Password.setBackground(new Color(255, 255, 255));
-        jpf_Password.setEchoChar((char) 0);
-        jpf_Password.addFocusListener(new java.awt.event.FocusAdapter() {
-            public void focusGained(java.awt.event.FocusEvent evt) {
-                jpf_PasswordFocusGained(evt);
-            }
-            public void focusLost(java.awt.event.FocusEvent evt) {
-                jpf_PasswordFocusLost(evt);
-            }
-        });
-        jpf_Password.setBounds(410, 220, 120, 25);
-        add(jpf_Password);
-        	
-        jlbl_Password.setForeground(new Color(23, 22, 22));
-        jlbl_Password.setText("Password");
-        jlbl_Password.setBounds(390, 200, 70, 16);
-        add(jlbl_Password);
-
-        jlbl_Username.setForeground(new Color(23, 22, 22));
-        jlbl_Username.setText("Username");
-        jlbl_Username.setBounds(390, 130, 70, 16);
-        add(jlbl_Username);
-
+        
+        jlbl_Forgot_Password = new JLabel("Forgot Password?");
         jlbl_Forgot_Password.setForeground(new Color(23, 22, 22));
-        jlbl_Forgot_Password.setText("Forgot Password?");
-        jlbl_Forgot_Password.setToolTipText("");
         jlbl_Forgot_Password.setCursor(new Cursor(Cursor.HAND_CURSOR));
         jlbl_Forgot_Password.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jlbl_Forgot_PasswordMouseClicked(evt);
             }
             public void mouseEntered(MouseEvent evt) {
-                jlbl_Forgot_Password_Mouse_Hover(evt);
+                jlbl_Forgot_Password.setText("<html><u>Forgot Password?</u></html>");
             }
             public void mouseExited(MouseEvent evt) {
-                jlbl_Forgot_Password_Mouse_Exited(evt);
+                jlbl_Forgot_Password.setText("Forgot Password?");
             }
         });
-        jlbl_Forgot_Password.setBounds(420, 260, 120, 16);
-        add(jlbl_Forgot_Password);
-
+        
+        jlbl_Sign_Up = new JLabel("Sign Up");
         jlbl_Sign_Up.setForeground(new Color(23, 22, 22));
-        jlbl_Sign_Up.setText("Sign Up");
-        jlbl_Sign_Up.setToolTipText("");
         jlbl_Sign_Up.setCursor(new Cursor(Cursor.HAND_CURSOR));
         jlbl_Sign_Up.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
                 jlbl_Sign_UpMouseClicked(evt);
             }
             public void mouseEntered(MouseEvent evt) {
-                jlbl_Sign_UpMouseEntered(evt);
+                jlbl_Sign_Up.setText("<html><u>Sign Up</u></html>");
             }
             public void mouseExited(MouseEvent evt) {
-                jlbl_Sign_UpMouseExited(evt);
+                jlbl_Sign_Up.setText("Sign Up");
             }
         });
-        jlbl_Sign_Up.setBounds(450, 340, 50, 16);
-        add(jlbl_Sign_Up);
-
-        jlbl_Account_Icon.setBackground(new Color(23, 22, 22));
-        jlbl_Account_Icon.setIcon(new ImageIcon(getClass().getResource("/assets/icon/AccountBlack.png")));
-        jlbl_Account_Icon.setBounds(410, 60, 32, 32);
-        add(jlbl_Account_Icon);
-
-        jlbl_Background.setIcon(new ImageIcon(getClass().getResource("/assets/image/background(900x410).png")));
-        jlbl_Background.setBounds(0, 0, 910, 410);
-        add(jlbl_Background);
+        
+        // Header panel with icon and title
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        headerPanel.setOpaque(false);
+        headerPanel.add(jlbl_Account_Icon);
+        headerPanel.add(jlbl_Login);
+        
+        // Add components to form panel using GridBagLayout
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        // Username section
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        formPanel.add(jlbl_Username, gbc);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        formPanel.add(jtf_Username, gbc);
+        
+        // Password section
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
+        formPanel.add(jlbl_Password, gbc);
+        
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 1.0;
+        formPanel.add(jpf_Password, gbc);
+        
+        // Forgot password link
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.anchor = GridBagConstraints.EAST;
+        formPanel.add(jlbl_Forgot_Password, gbc);
+        
+        // Login button
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.insets = new Insets(15, 5, 15, 5);
+        formPanel.add(jbtn_Login, gbc);
+        
+        // Sign up link
+        gbc.gridx = 0;
+        gbc.gridy = 6;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        formPanel.add(jlbl_Sign_Up, gbc);
+        
+        // Add panels to content panel
+        contentPanel.add(headerPanel, BorderLayout.NORTH);
+        contentPanel.add(formPanel, BorderLayout.CENTER);
+        
+        // Create a wrapper panel to center the form
+        JPanel wrapperPanel = new JPanel(new GridBagLayout());
+        wrapperPanel.setOpaque(false);
+        wrapperPanel.add(contentPanel);
+        
+        // Add background
+        JLabel jlbl_Background = new JLabel(new ImageIcon(getClass().getResource("/assets/image/background(900x410).png")));
+        jlbl_Background.setLayout(new BorderLayout());
+        jlbl_Background.add(wrapperPanel, BorderLayout.CENTER);
+        
+        // Add background to main panel
+        add(jlbl_Background, BorderLayout.CENTER);
     }
 
     private void jbtn_LoginActionPerformed(ActionEvent evt) {
@@ -174,7 +213,22 @@ public class Login_Panel extends JPanel {
         String password = new String(jpf_Password.getPassword()).trim();
 
         try {
+            // Debug print to see what values are being used
+            System.out.println("Attempting login with: " + username + " / " + password);
+            
+            // Check if user exists first
+            if (!userManager.userExists(username)) {
+                JOptionPane.showMessageDialog(this, "Username does not exist.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Get the user object to check password
+            database.User user = userManager.getUser(username);
+            System.out.println("User found: " + user);
+            System.out.println("Stored password: " + user.getPassword());
+            
             boolean isAuthenticated = userManager.authenticateUser(username, password);
+            System.out.println("Authentication result: " + isAuthenticated);
 
             if (isAuthenticated) {
                 JOptionPane.showMessageDialog(this, "Login successful!");
@@ -190,60 +244,14 @@ public class Login_Panel extends JPanel {
         }
     }
 
-    private void jtf_UsernameFocusGained(java.awt.event.FocusEvent evt) {
-        if ("Enter Username".equals(jtf_Username.getText())) {
-            jtf_Username.setText("");
-        }
-    }
-
-    private void jtf_UsernameFocusLost(java.awt.event.FocusEvent evt) {
-        if ("".equals(jtf_Username.getText())) {
-            jtf_Username.setText("Enter Username");
-        }
-    }
-
-    private void jpf_PasswordFocusGained(java.awt.event.FocusEvent evt) {
-        if ("Enter Password".equals(new String(jpf_Password.getPassword()))) {
-            jpf_Password.setEchoChar('\u2022');
-            jpf_Password.setText("");
-        }
-    }
-
-    private void jpf_PasswordFocusLost(java.awt.event.FocusEvent evt) {
-        if (new String(jpf_Password.getPassword()).isEmpty()) {
-            jpf_Password.setEchoChar((char) 0);
-            jpf_Password.setText("Enter Password");
-        }
-    }
-
-    private void jlbl_Forgot_Password_Mouse_Hover(java.awt.event.MouseEvent evt) {
-        jlbl_Forgot_Password.setText("<html><u>Forgot Password?</u></html>");
-    }
-
-    private void jlbl_Forgot_Password_Mouse_Exited(java.awt.event.MouseEvent evt) {
-        jlbl_Forgot_Password.setText("Forgot Password?");
-    }
-
-    private void jlbl_Sign_UpMouseEntered(java.awt.event.MouseEvent evt) {
-        jlbl_Sign_Up.setText("<html><u>Sign Up</u></html>");
-    }
-
-    private void jlbl_Sign_UpMouseExited(java.awt.event.MouseEvent evt) {
-        jlbl_Sign_Up.setText("Sign Up");
-    }
-
-    private void jlbl_Sign_UpMouseClicked(java.awt.event.MouseEvent evt) {
+    private void jlbl_Sign_UpMouseClicked(MouseEvent evt) {
         // Show sign up panel
         mainFrame.showSignUpPanel();
     }
 
-    private void jlbl_Forgot_PasswordMouseClicked(java.awt.event.MouseEvent evt) {
+    private void jlbl_Forgot_PasswordMouseClicked(MouseEvent evt) {
         // Show forgot password panel
         mainFrame.showForgotPasswordPanel();
-    }
-
-    private void formMouseClicked(java.awt.event.MouseEvent evt) {
-        // Optional: Add code for when form is clicked
     }
     
     public JPanel getPanel() {

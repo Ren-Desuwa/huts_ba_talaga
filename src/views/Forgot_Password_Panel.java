@@ -21,6 +21,9 @@ public class Forgot_Password_Panel extends JPanel {
     private JLabel jlbl_BackToLogin;
     private JLabel jlbl_Account_Icon;
     private JLabel jlbl_Background;
+    
+    // For responsiveness
+    private JPanel contentPanel;
 
     /**
      * Creates new Forgot Password Panel
@@ -32,6 +35,15 @@ public class Forgot_Password_Panel extends JPanel {
     }
 
     private void initComponents() {
+        // Set layout for main panel
+        setBackground(new Color(35, 50, 90));
+        setLayout(new BorderLayout());
+        
+        // Initialize content panel that will hold all components
+        contentPanel = new JPanel();
+        contentPanel.setOpaque(false);
+        contentPanel.setLayout(null);
+        
         jlbl_ForgotPassword = new JLabel();
         jtf_Username = new JTextField();
         jlbl_Username = new JLabel();
@@ -44,17 +56,13 @@ public class Forgot_Password_Panel extends JPanel {
         jlbl_Account_Icon = new JLabel();
         jlbl_Background = new JLabel();
 
-        setBackground(new Color(35, 50, 90));
-        setMinimumSize(new Dimension(900, 410));
-        setPreferredSize(new Dimension(900, 410));
-        setLayout(null);
-
+        // Setup the form title
         jlbl_ForgotPassword.setFont(new Font("Segoe UI", 0, 24));
         jlbl_ForgotPassword.setForeground(new Color(23, 22, 22));
         jlbl_ForgotPassword.setHorizontalAlignment(SwingConstants.CENTER);
         jlbl_ForgotPassword.setText("Reset Password");
         jlbl_ForgotPassword.setBounds(400, 60, 200, 32);
-        add(jlbl_ForgotPassword);
+        contentPanel.add(jlbl_ForgotPassword);
 
         // Username field
         jtf_Username.setForeground(new Color(23, 22, 22));
@@ -72,12 +80,12 @@ public class Forgot_Password_Panel extends JPanel {
             }
         });
         jtf_Username.setBounds(410, 120, 180, 25);
-        add(jtf_Username);
+        contentPanel.add(jtf_Username);
 
         jlbl_Username.setForeground(new Color(23, 22, 22));
         jlbl_Username.setText("Username");
         jlbl_Username.setBounds(320, 120, 80, 25);
-        add(jlbl_Username);
+        contentPanel.add(jlbl_Username);
 
         // New Password field
         jpf_NewPassword.setForeground(new Color(23, 22, 22));
@@ -98,12 +106,12 @@ public class Forgot_Password_Panel extends JPanel {
             }
         });
         jpf_NewPassword.setBounds(410, 170, 180, 25);
-        add(jpf_NewPassword);
+        contentPanel.add(jpf_NewPassword);
 
         jlbl_NewPassword.setForeground(new Color(23, 22, 22));
         jlbl_NewPassword.setText("New Password");
         jlbl_NewPassword.setBounds(320, 170, 100, 25);
-        add(jlbl_NewPassword);
+        contentPanel.add(jlbl_NewPassword);
 
         // Confirm Password field
         jpf_ConfirmPassword.setForeground(new Color(23, 22, 22));
@@ -124,12 +132,12 @@ public class Forgot_Password_Panel extends JPanel {
             }
         });
         jpf_ConfirmPassword.setBounds(410, 220, 180, 25);
-        add(jpf_ConfirmPassword);
+        contentPanel.add(jpf_ConfirmPassword);
 
         jlbl_ConfirmPassword.setForeground(new Color(23, 22, 22));
         jlbl_ConfirmPassword.setText("Confirm Password");
         jlbl_ConfirmPassword.setBounds(300, 220, 110, 25);
-        add(jlbl_ConfirmPassword);
+        contentPanel.add(jlbl_ConfirmPassword);
 
         // Reset Password button
         jbtn_ResetPassword.setBackground(new Color(226, 149, 90));
@@ -143,7 +151,7 @@ public class Forgot_Password_Panel extends JPanel {
             }
         });
         jbtn_ResetPassword.setBounds(400, 270, 150, 32);
-        add(jbtn_ResetPassword);
+        contentPanel.add(jbtn_ResetPassword);
 
         // Back to Login link
         jlbl_BackToLogin.setForeground(new Color(23, 22, 22));
@@ -161,15 +169,61 @@ public class Forgot_Password_Panel extends JPanel {
             }
         });
         jlbl_BackToLogin.setBounds(430, 320, 100, 16);
-        add(jlbl_BackToLogin);
+        contentPanel.add(jlbl_BackToLogin);
 
         jlbl_Account_Icon.setIcon(new ImageIcon(getClass().getResource("/assets/icon/AccountBlack.png")));
         jlbl_Account_Icon.setBounds(370, 60, 32, 32);
-        add(jlbl_Account_Icon);
+        contentPanel.add(jlbl_Account_Icon);
 
         jlbl_Background.setIcon(new ImageIcon(getClass().getResource("/assets/image/background(900x410).png")));
         jlbl_Background.setBounds(0, 0, 910, 410);
-        add(jlbl_Background);
+        contentPanel.add(jlbl_Background);
+        
+        // Add content panel to main panel
+        add(contentPanel, BorderLayout.CENTER);
+        
+        // Add component listener to handle resizing
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                resizeComponents();
+            }
+        });
+    }
+    
+    private void resizeComponents() {
+        int width = getWidth();
+        int height = getHeight();
+        
+        // Calculate center positions
+        int centerX = width / 2;
+        int formWidth = 600;  // Width of the form area
+        int leftMargin = centerX - (formWidth / 2);
+        
+        // Adjust positions based on new size
+        jlbl_ForgotPassword.setBounds(centerX - 100, 60, 200, 32);
+        jlbl_Account_Icon.setBounds(centerX - 130, 60, 32, 32);
+        
+        // Username row
+        jlbl_Username.setBounds(leftMargin, 120, 80, 25);
+        jtf_Username.setBounds(leftMargin + 90, 120, 180, 25);
+        
+        // New Password row
+        jlbl_NewPassword.setBounds(leftMargin, 170, 100, 25);
+        jpf_NewPassword.setBounds(leftMargin + 90, 170, 180, 25);
+        
+        // Confirm Password row
+        jlbl_ConfirmPassword.setBounds(leftMargin, 220, 110, 25);
+        jpf_ConfirmPassword.setBounds(leftMargin + 90, 220, 180, 25);
+        
+        // Reset button
+        jbtn_ResetPassword.setBounds(centerX - 75, 270, 150, 32);
+        
+        // Back to login link
+        jlbl_BackToLogin.setBounds(centerX - 50, 320, 100, 16);
+        
+        // Background - stretch to fit panel size
+        jlbl_Background.setBounds(0, 0, width, height);
     }
 
     private void jbtn_ResetPasswordActionPerformed(ActionEvent evt) {
@@ -236,5 +290,8 @@ public class Forgot_Password_Panel extends JPanel {
         jpf_NewPassword.setEchoChar((char) 0);
         jpf_ConfirmPassword.setText("Confirm New Password");
         jpf_ConfirmPassword.setEchoChar((char) 0);
+        
+        // Adjust component positions for current size
+        resizeComponents();
     }
 }

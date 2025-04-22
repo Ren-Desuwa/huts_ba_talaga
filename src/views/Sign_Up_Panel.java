@@ -2,6 +2,7 @@ package views;
 
 import database.Database_Manager;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 
@@ -24,7 +25,7 @@ public class Sign_Up_Panel extends JPanel {
     private JLabel jlbl_FullName;
     private JLabel jlbl_Login;
     private JLabel jlbl_Account_Icon;
-    private JLabel jlbl_Background;
+    private JPanel contentPanel;
 
     /**
      * Creates new Sign Up Panel
@@ -36,50 +37,31 @@ public class Sign_Up_Panel extends JPanel {
     }
 
     private void initComponents() {
-        jlbl_SignUp = new JLabel();
-        jbtn_SignUp = new JButton();
-        jtf_Username = new JTextField();
-        jpf_Password = new JPasswordField();
-        jpf_ConfirmPassword = new JPasswordField();
-        jtf_Email = new JTextField();
-        jtf_FullName = new JTextField();
-        jlbl_Password = new JLabel();
-        jlbl_ConfirmPassword = new JLabel();
-        jlbl_Username = new JLabel();
-        jlbl_Email = new JLabel();
-        jlbl_FullName = new JLabel();
-        jlbl_Login = new JLabel();
-        jlbl_Account_Icon = new JLabel();
-        jlbl_Background = new JLabel();
-
+        // Set background and layout
         setBackground(new Color(35, 50, 90));
-        setMinimumSize(new Dimension(900, 410));
-        setPreferredSize(new Dimension(900, 410));
-        setLayout(null);
-
+        setLayout(new BorderLayout());
+        
+        // Create content panel with BorderLayout
+        contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setOpaque(false);
+        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        
+        // Create form panel with responsive GridBagLayout
+        JPanel formPanel = new JPanel(new GridBagLayout());
+        formPanel.setOpaque(false);
+        
+        // Initialize components
+        jlbl_SignUp = new JLabel("Sign Up");
         jlbl_SignUp.setFont(new Font("Segoe UI", 0, 24));
         jlbl_SignUp.setForeground(new Color(23, 22, 22));
         jlbl_SignUp.setHorizontalAlignment(SwingConstants.CENTER);
-        jlbl_SignUp.setText("Sign Up");
-        jlbl_SignUp.setBounds(450, 40, 100, 32);
-        add(jlbl_SignUp);
-
-        jbtn_SignUp.setBackground(new Color(226, 149, 90));
-        jbtn_SignUp.setFont(new Font("Segoe UI", 0, 18));
-        jbtn_SignUp.setForeground(new Color(255, 255, 255));
-        jbtn_SignUp.setText("Sign Up");
-        jbtn_SignUp.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        jbtn_SignUp.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                jbtn_SignUpActionPerformed(evt);
-            }
-        });
-        jbtn_SignUp.setBounds(420, 330, 100, 32);
-        add(jbtn_SignUp);
-
-        // Username field
+        
+        jlbl_Account_Icon = new JLabel();
+        jlbl_Account_Icon.setIcon(new ImageIcon(getClass().getResource("/assets/icon/AccountBlack.png")));
+        
+        // Username components
+        jtf_Username = new JTextField("Enter Username");
         jtf_Username.setForeground(new Color(23, 22, 22));
-        jtf_Username.setText("Enter Username");
         jtf_Username.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 if ("Enter Username".equals(jtf_Username.getText())) {
@@ -92,17 +74,13 @@ public class Sign_Up_Panel extends JPanel {
                 }
             }
         });
-        jtf_Username.setBounds(410, 100, 180, 25);
-        add(jtf_Username);
-
+        
+        jlbl_Username = new JLabel("Username");
         jlbl_Username.setForeground(new Color(23, 22, 22));
-        jlbl_Username.setText("Username");
-        jlbl_Username.setBounds(330, 100, 70, 25);
-        add(jlbl_Username);
-
-        // Email field
+        
+        // Email components
+        jtf_Email = new JTextField("Enter Email");
         jtf_Email.setForeground(new Color(23, 22, 22));
-        jtf_Email.setText("Enter Email");
         jtf_Email.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 if ("Enter Email".equals(jtf_Email.getText())) {
@@ -115,17 +93,13 @@ public class Sign_Up_Panel extends JPanel {
                 }
             }
         });
-        jtf_Email.setBounds(410, 140, 180, 25);
-        add(jtf_Email);
-
+        
+        jlbl_Email = new JLabel("Email");
         jlbl_Email.setForeground(new Color(23, 22, 22));
-        jlbl_Email.setText("Email");
-        jlbl_Email.setBounds(330, 140, 70, 25);
-        add(jlbl_Email);
-
-        // Full Name field
+        
+        // Full Name components
+        jtf_FullName = new JTextField("Enter Full Name");
         jtf_FullName.setForeground(new Color(23, 22, 22));
-        jtf_FullName.setText("Enter Full Name");
         jtf_FullName.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
                 if ("Enter Full Name".equals(jtf_FullName.getText())) {
@@ -138,17 +112,13 @@ public class Sign_Up_Panel extends JPanel {
                 }
             }
         });
-        jtf_FullName.setBounds(410, 180, 180, 25);
-        add(jtf_FullName);
-
+        
+        jlbl_FullName = new JLabel("Full Name");
         jlbl_FullName.setForeground(new Color(23, 22, 22));
-        jlbl_FullName.setText("Full Name");
-        jlbl_FullName.setBounds(330, 180, 70, 25);
-        add(jlbl_FullName);
-
-        // Password field
+        
+        // Password components
+        jpf_Password = new JPasswordField("Enter Password");
         jpf_Password.setForeground(new Color(23, 22, 22));
-        jpf_Password.setText("Enter Password");
         jpf_Password.setEchoChar((char) 0);
         jpf_Password.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
@@ -164,17 +134,13 @@ public class Sign_Up_Panel extends JPanel {
                 }
             }
         });
-        jpf_Password.setBounds(410, 220, 180, 25);
-        add(jpf_Password);
-
+        
+        jlbl_Password = new JLabel("Password");
         jlbl_Password.setForeground(new Color(23, 22, 22));
-        jlbl_Password.setText("Password");
-        jlbl_Password.setBounds(330, 220, 70, 25);
-        add(jlbl_Password);
-
-        // Confirm Password field
+        
+        // Confirm Password components
+        jpf_ConfirmPassword = new JPasswordField("Confirm Password");
         jpf_ConfirmPassword.setForeground(new Color(23, 22, 22));
-        jpf_ConfirmPassword.setText("Confirm Password");
         jpf_ConfirmPassword.setEchoChar((char) 0);
         jpf_ConfirmPassword.addFocusListener(new FocusAdapter() {
             public void focusGained(FocusEvent evt) {
@@ -190,17 +156,25 @@ public class Sign_Up_Panel extends JPanel {
                 }
             }
         });
-        jpf_ConfirmPassword.setBounds(410, 260, 180, 25);
-        add(jpf_ConfirmPassword);
-
+        
+        jlbl_ConfirmPassword = new JLabel("Confirm Password");
         jlbl_ConfirmPassword.setForeground(new Color(23, 22, 22));
-        jlbl_ConfirmPassword.setText("Confirm Password");
-        jlbl_ConfirmPassword.setBounds(290, 260, 110, 25);
-        add(jlbl_ConfirmPassword);
-
-        // Already have an account? Login link
+        
+        // Sign Up button
+        jbtn_SignUp = new JButton("Sign Up");
+        jbtn_SignUp.setBackground(new Color(226, 149, 90));
+        jbtn_SignUp.setFont(new Font("Segoe UI", 0, 18));
+        jbtn_SignUp.setForeground(new Color(255, 255, 255));
+        jbtn_SignUp.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        jbtn_SignUp.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+                jbtn_SignUpActionPerformed(evt);
+            }
+        });
+        
+        // Login link
+        jlbl_Login = new JLabel("Already have an account? Login");
         jlbl_Login.setForeground(new Color(23, 22, 22));
-        jlbl_Login.setText("Already have an account? Login");
         jlbl_Login.setCursor(new Cursor(Cursor.HAND_CURSOR));
         jlbl_Login.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent evt) {
@@ -213,16 +187,104 @@ public class Sign_Up_Panel extends JPanel {
                 jlbl_Login.setText("Already have an account? Login");
             }
         });
-        jlbl_Login.setBounds(370, 370, 200, 16);
-        add(jlbl_Login);
-
-        jlbl_Account_Icon.setIcon(new ImageIcon(getClass().getResource("/assets/icon/AccountBlack.png")));
-        jlbl_Account_Icon.setBounds(410, 40, 32, 32);
-        add(jlbl_Account_Icon);
-
-        jlbl_Background.setIcon(new ImageIcon(getClass().getResource("/assets/image/background(900x410).png")));
-        jlbl_Background.setBounds(0, 0, 910, 410);
-        add(jlbl_Background);
+        
+        // Header panel with icon and title
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        headerPanel.setOpaque(false);
+        headerPanel.add(jlbl_Account_Icon);
+        headerPanel.add(jlbl_SignUp);
+        
+        // Add components to form panel using GridBagLayout
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(4, 5, 4, 5);
+        
+        // Username section
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        formPanel.add(jlbl_Username, gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        formPanel.add(jtf_Username, gbc);
+        
+        // Email section
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0;
+        formPanel.add(jlbl_Email, gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 1.0;
+        formPanel.add(jtf_Email, gbc);
+        
+        // Full Name section
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
+        formPanel.add(jlbl_FullName, gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.weightx = 1.0;
+        formPanel.add(jtf_FullName, gbc);
+        
+        // Password section
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 0;
+        formPanel.add(jlbl_Password, gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        gbc.weightx = 1.0;
+        formPanel.add(jpf_Password, gbc);
+        
+        // Confirm Password section
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.weightx = 0;
+        formPanel.add(jlbl_ConfirmPassword, gbc);
+        
+        gbc.gridx = 1;
+        gbc.gridy = 4;
+        gbc.weightx = 1.0;
+        formPanel.add(jpf_ConfirmPassword, gbc);
+        
+        // Button and login link in separate panel for centering
+        JPanel actionPanel = new JPanel(new GridBagLayout());
+        actionPanel.setOpaque(false);
+        
+        GridBagConstraints actionConstraints = new GridBagConstraints();
+        actionConstraints.gridx = 0;
+        actionConstraints.gridy = 0;
+        actionConstraints.insets = new Insets(10, 0, 10, 0);
+        actionPanel.add(jbtn_SignUp, actionConstraints);
+        
+        actionConstraints.gridy = 1;
+        actionConstraints.insets = new Insets(5, 0, 5, 0);
+        actionPanel.add(jlbl_Login, actionConstraints);
+        
+        // Add panels to content panel
+        contentPanel.add(headerPanel, BorderLayout.NORTH);
+        contentPanel.add(formPanel, BorderLayout.CENTER);
+        contentPanel.add(actionPanel, BorderLayout.SOUTH);
+        
+        // Create a wrapper panel to center the form
+        JPanel wrapperPanel = new JPanel(new GridBagLayout());
+        wrapperPanel.setOpaque(false);
+        wrapperPanel.add(contentPanel);
+        
+        // Add background
+        JLabel jlbl_Background = new JLabel(new ImageIcon(getClass().getResource("/assets/image/background(900x410).png")));
+        jlbl_Background.setLayout(new BorderLayout());
+        jlbl_Background.add(wrapperPanel, BorderLayout.CENTER);
+        
+        // Add background to main panel
+        add(jlbl_Background, BorderLayout.CENTER);
     }
 
     private void jbtn_SignUpActionPerformed(ActionEvent evt) {
