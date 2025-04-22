@@ -41,6 +41,10 @@ public class Main_Frame extends JFrame {
     private static final String WATER_PANEL = "water";
     private static final String SUBSCRIPTION_PANEL = "subscription";
     
+    // Size constants
+    private static final Dimension AUTH_PANEL_SIZE = new Dimension(600, 400);
+    private static final Dimension MAIN_PANEL_SIZE = new Dimension(900, 450);
+    
     // Database manager instance
     private Database_Manager dbManager;
     private User_Manager userManager;
@@ -64,8 +68,7 @@ public class Main_Frame extends JFrame {
         // Set up window properties
         setTitle("Home Utility Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setMinimumSize(new Dimension(900, 450));
-        setResizable(false);
+        setResizable(true);
         
         // Create card layout and content panel
         cardLayout = new CardLayout();
@@ -76,6 +79,9 @@ public class Main_Frame extends JFrame {
         
         // Add panels to content pane
         getContentPane().add(contentPanel);
+        
+        // Set initial size for login panel
+        setSize(AUTH_PANEL_SIZE);
         
         // Center on screen
         setLocationRelativeTo(null);
@@ -293,6 +299,8 @@ public class Main_Frame extends JFrame {
     }
     
     public void showLoginPanel() {
+        // Resize the frame for the login panel
+        resizeFrame(AUTH_PANEL_SIZE);
         loginPanel.refreshPanel();
         cardLayout.show(contentPanel, LOGIN_PANEL);
     }
@@ -301,6 +309,8 @@ public class Main_Frame extends JFrame {
      * Shows the sign up panel
      */
     public void showSignUpPanel() {
+        // Resize the frame for the sign up panel
+        resizeFrame(AUTH_PANEL_SIZE);
         signUpPanel.refreshPanel();
         cardLayout.show(contentPanel, SIGNUP_PANEL);
     }
@@ -309,6 +319,8 @@ public class Main_Frame extends JFrame {
      * Shows the forgot password panel
      */
     public void showForgotPasswordPanel() {
+        // Resize the frame for the forgot password panel
+        resizeFrame(AUTH_PANEL_SIZE);
         forgotPasswordPanel.refreshPanel();
         cardLayout.show(contentPanel, FORGOT_PASSWORD_PANEL);
     }
@@ -317,12 +329,26 @@ public class Main_Frame extends JFrame {
      * Shows the main content panel after successful login
      */
     public void showMainContent() {
+        // Resize the frame for the main panel
+        resizeFrame(MAIN_PANEL_SIZE);
+        
         // Add sample data if needed
         addSampleData();
+        
         // Show main content panel
         cardLayout.show(contentPanel, MAIN_CONTENT_PANEL);
+        
         // Default to welcome panel
         showWelcomePanel();
+    }
+    
+    /**
+     * Resizes the frame to fit the specified dimension
+     * @param dimension the target dimension
+     */
+    private void resizeFrame(Dimension dimension) {
+        setSize(dimension);
+        setLocationRelativeTo(null); // Re-center the frame
     }
     
     /**
@@ -331,53 +357,60 @@ public class Main_Frame extends JFrame {
     public void logout() {
         showLoginPanel();
     }
+    
     public void showPanel(String panelName) {
         // Refresh the panel before showing it
         refreshPanel(panelName);
         
-        // Get the content area panel which is the center component of mainPanel
-        JPanel contentArea = (JPanel) mainPanel.getComponent(1);
-        CardLayout cardLayout = (CardLayout) contentArea.getLayout();
+        // Resize frame based on panel type
+        if (panelName.equals(LOGIN_PANEL) || panelName.equals(FORGOT_PASSWORD_PANEL) || panelName.equals(SIGNUP_PANEL)) {
+            resizeFrame(AUTH_PANEL_SIZE);
+        } else {
+            resizeFrame(MAIN_PANEL_SIZE);
+        }
         
-        // Show the panel using the correct panel mappings
-        switch (panelName.toLowerCase()) {
-            case WELCOME_PANEL:
-                cardLayout.show(contentArea, "WELCOME");
-                break;
-            case ELECTRICITY_PANEL:
-                cardLayout.show(contentArea, "ELECTRICITY");
-                break;
-            case GAS_PANEL:
-                cardLayout.show(contentArea, "GAS");
-                break;
-            case WATER_PANEL:
-                cardLayout.show(contentArea, "WATER");
-                break;
-            case SUBSCRIPTION_PANEL:
-                cardLayout.show(contentArea, "SUBSCRIPTION");
-                break;
-            case LOGIN_PANEL:
-            case FORGOT_PASSWORD_PANEL:
-            case SIGNUP_PANEL:
-                // These panels are in the outer contentPanel, not in contentArea
-                this.cardLayout.show(contentPanel, panelName);
-                break;
-            default:
-                System.out.println("Invalid panel name: " + panelName);
-                break;
+        // Get the content area panel which is the center component of mainPanel
+        if (panelName.equals(LOGIN_PANEL) || panelName.equals(FORGOT_PASSWORD_PANEL) || panelName.equals(SIGNUP_PANEL)) {
+            // These panels are in the outer contentPanel, not in contentArea
+            this.cardLayout.show(contentPanel, panelName);
+        } else {
+            JPanel contentArea = (JPanel) mainPanel.getComponent(1);
+            CardLayout cardLayout = (CardLayout) contentArea.getLayout();
+            
+            // Show the panel using the correct panel mappings
+            switch (panelName.toLowerCase()) {
+                case WELCOME_PANEL:
+                    cardLayout.show(contentArea, "WELCOME");
+                    break;
+                case ELECTRICITY_PANEL:
+                    cardLayout.show(contentArea, "ELECTRICITY");
+                    break;
+                case GAS_PANEL:
+                    cardLayout.show(contentArea, "GAS");
+                    break;
+                case WATER_PANEL:
+                    cardLayout.show(contentArea, "WATER");
+                    break;
+                case SUBSCRIPTION_PANEL:
+                    cardLayout.show(contentArea, "SUBSCRIPTION");
+                    break;
+                default:
+                    System.out.println("Invalid panel name: " + panelName);
+                    break;
+            }
         }
     }
+    
     private void refreshPanel(String panelName) {
         switch (panelName.toLowerCase()) {
             case LOGIN_PANEL:
-                // Login panel may not need refreshing
+                loginPanel.refreshPanel();
                 break;
             case FORGOT_PASSWORD_PANEL:
                 forgotPasswordPanel.refreshPanel();
                 break;
             case SIGNUP_PANEL:
-                // If register panel has a refresh method
-                // registerPanel.refreshPanel();
+                signUpPanel.refreshPanel();
                 break;
             case WELCOME_PANEL:
                 welcomePanel.refreshPanel();
@@ -396,7 +429,10 @@ public class Main_Frame extends JFrame {
                 break;
         }
     }
+    
     private void revalidateAllPanels() {
+        loginPanel.refreshPanel();
+        signUpPanel.refreshPanel();
         forgotPasswordPanel.refreshPanel();
         
         // Call refresh on other panels if they have it
