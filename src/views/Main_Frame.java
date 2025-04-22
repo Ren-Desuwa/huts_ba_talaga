@@ -325,7 +325,6 @@ public class Main_Frame extends JFrame {
         showWelcomePanel();
     }
     
-    
     /**
      * Logs out the user and returns to login panel
      */
@@ -336,31 +335,32 @@ public class Main_Frame extends JFrame {
         // Refresh the panel before showing it
         refreshPanel(panelName);
         
-        // Show the panel
+        // Get the content area panel which is the center component of mainPanel
+        JPanel contentArea = (JPanel) mainPanel.getComponent(1);
+        CardLayout cardLayout = (CardLayout) contentArea.getLayout();
+        
+        // Show the panel using the correct panel mappings
         switch (panelName.toLowerCase()) {
-            case LOGIN_PANEL:
-                cardLayout.show(mainPanel, LOGIN_PANEL);
-                break;
-            case FORGOT_PASSWORD_PANEL:
-                cardLayout.show(mainPanel, FORGOT_PASSWORD_PANEL);
-                break;
-            case SIGNUP_PANEL:
-                cardLayout.show(mainPanel, SIGNUP_PANEL);
-                break;
             case WELCOME_PANEL:
-                cardLayout.show(mainPanel, WELCOME_PANEL);
+                cardLayout.show(contentArea, "WELCOME");
                 break;
             case ELECTRICITY_PANEL:
-                cardLayout.show(mainPanel, ELECTRICITY_PANEL);
+                cardLayout.show(contentArea, "ELECTRICITY");
                 break;
             case GAS_PANEL:
-                cardLayout.show(mainPanel, GAS_PANEL);
+                cardLayout.show(contentArea, "GAS");
                 break;
             case WATER_PANEL:
-                cardLayout.show(mainPanel, WATER_PANEL);
+                cardLayout.show(contentArea, "WATER");
                 break;
             case SUBSCRIPTION_PANEL:
-                cardLayout.show(mainPanel, SUBSCRIPTION_PANEL);
+                cardLayout.show(contentArea, "SUBSCRIPTION");
+                break;
+            case LOGIN_PANEL:
+            case FORGOT_PASSWORD_PANEL:
+            case SIGNUP_PANEL:
+                // These panels are in the outer contentPanel, not in contentArea
+                this.cardLayout.show(contentPanel, panelName);
                 break;
             default:
                 System.out.println("Invalid panel name: " + panelName);

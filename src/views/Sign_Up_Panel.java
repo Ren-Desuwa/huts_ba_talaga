@@ -332,12 +332,15 @@ public class Sign_Up_Panel extends JPanel {
                 return;
             }
             
-            // Register the user
-            boolean success = dbManager.registerUser(username, password, email, fullName);
+            // Register the user - now returns User object instead of boolean
+            database.User newUser = dbManager.registerUser(username, password, email, fullName);
             
-            if (success) {
-                JOptionPane.showMessageDialog(this, "Registration successful! Please log in.", "Success", JOptionPane.INFORMATION_MESSAGE);
-                mainFrame.showLoginPanel();
+            if (newUser != null) {
+                // Registration was successful and user is automatically authenticated
+                JOptionPane.showMessageDialog(this, "Registration successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
+                
+                // Navigate directly to the main dashboard with the new user
+                mainFrame.showMainDashboard(username);
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to register user", "Error", JOptionPane.ERROR_MESSAGE);
             }
