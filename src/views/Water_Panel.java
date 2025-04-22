@@ -1,9 +1,9 @@
 package views;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.*;
 import java.sql.Connection;
+import java.util.List;
+import javax.swing.*;
 import java.util.*;
 import models.Water;
 import database.Database_Manager;
@@ -311,7 +311,7 @@ public class Water_Panel implements Utility_Panel {
         dialog.setVisible(true);
     }
     
-    public java.util.List<Water> getWaterAccounts() {
+    public List<Water> getWaterAccounts() {
         return waterAccounts;
     }
     

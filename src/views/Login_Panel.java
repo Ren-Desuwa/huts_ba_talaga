@@ -3,14 +3,14 @@ package views;
 import models.*;
 import javax.swing.*;
 
-import database.Database_Manager;
+import database.User_Manager;
 
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 
 public class Login_Panel extends JPanel {
-    private final Database_Manager dbManager;
+    private final User_Manager userManager;
     private final Main_Frame mainFrame;
 
     // UI Components
@@ -28,8 +28,8 @@ public class Login_Panel extends JPanel {
     /**
      * Creates new Login Panel
      */
-    public Login_Panel(Main_Frame mainFrame, Database_Manager dbManager) {
-        this.dbManager = dbManager;
+    public Login_Panel(Main_Frame mainFrame, User_Manager userManager) {
+        this.userManager = userManager;
         this.mainFrame = mainFrame;
         initComponents();
     }
@@ -174,12 +174,12 @@ public class Login_Panel extends JPanel {
         String password = new String(jpf_Password.getPassword()).trim();
 
         try {
-            boolean isAuthenticated = dbManager.authenticateUser(username, password);
+            boolean isAuthenticated = userManager.authenticateUser(username, password);
 
             if (isAuthenticated) {
                 JOptionPane.showMessageDialog(this, "Login successful!");
                 // Show the main application window
-                mainFrame.showMainContent();
+                mainFrame.();
             } else {
                 // Invalid credentials
                 JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);

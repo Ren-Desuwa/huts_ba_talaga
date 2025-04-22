@@ -16,6 +16,7 @@ public class Database_Manager {
     private static final String DB_URL = "jdbc:sqlite:house_utilities.db";
     
     // Specialized managers
+    private User_Manager userManager;
     private Electricity_Manager electricityManager;
     private Gas_Manager gasManager;
     private Water_Manager waterManager;
@@ -53,6 +54,7 @@ public class Database_Manager {
     }
     
     private void initializeManagers() {
+    	userManager = new User_Manager();
         electricityManager = new Electricity_Manager(connection);
         gasManager = new Gas_Manager(connection);
         waterManager = new Water_Manager(connection);
@@ -154,8 +156,32 @@ public class Database_Manager {
         return readingHistoryManager;
     }
     
+    public boolean authenticateUser(String username, String password) {
+        return userManager.authenticateUser(username, password);
+    }
+    
     public Connection getConnection() {
         return this.connection;
+    }
+    
+    public boolean registerUser(String username, String password, String email, String fullName) {
+        if (!userManager.userExists(username)) {
+            User newUser = new User(username, password, email, fullName);
+            return userManager.addUser(newUser);
+        }
+        return false;
+    }
+    
+    public boolean updatePassword(String username, String newPassword) {
+        return userManager.updateUserPassword(username, newPassword);
+    }
+    
+    public boolean userExists(String username) {
+        return userManager.userExists(username);
+    }
+    
+    public User getUser(String username) {
+        return userManager.getUser(username);
     }
     
     // Close connection

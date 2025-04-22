@@ -17,6 +17,11 @@ public class Main_Frame extends JFrame {
     private JPanel mainPanel;
     private JPanel menuPanel;
     private JPanel contentPanel;
+    private Login_Panel loginPanel;
+    private Sign_Up_Panel signUpPanel;
+    private Forgot_Password_Panel forgotPasswordPanel;
+    private Main_Content_Panel mainContentPanel;
+    private final CardLayout cardLayout;
     
     // Panel managers
     private Welcome_Panel welcomePanel;
@@ -29,13 +34,15 @@ public class Main_Frame extends JFrame {
     // Database manager instance
     private Database_Manager dbManager;
     private Subscription_Manager subscriptionManager;
-    private Bill_Manager billManager;
-    private Reading_History_Manager readingHistoryManager;
     private Electricity_Manager electricityManager;
     private Gas_Manager gasManager;
     private Water_Manager waterManager;
-    private User_Manager userManager;
     
+    
+    private static final String LOGIN_PANEL = "LOGIN_PANEL";
+    private static final String SIGNUP_PANEL = "SIGNUP_PANEL";
+    private static final String FORGOT_PASSWORD_PANEL = "FORGOT_PASSWORD_PANEL";
+    private static final String MAIN_CONTENT_PANEL = "MAIN_CONTENT_PANEL";
     
     public Main_Frame() {
         // Initialize database manager
