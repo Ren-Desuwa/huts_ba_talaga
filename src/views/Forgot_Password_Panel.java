@@ -25,6 +25,12 @@ public class Forgot_Password_Panel extends JPanel {
     // For responsiveness
     private JPanel contentPanel;
 
+    // Form dimensions
+    private final int LABEL_WIDTH = 110;
+    private final int FIELD_WIDTH = 180;
+    private final int ROW_HEIGHT = 25;
+    private final int VERTICAL_GAP = 50;
+
     /**
      * Creates new Forgot Password Panel
      */
@@ -61,7 +67,6 @@ public class Forgot_Password_Panel extends JPanel {
         jlbl_ForgotPassword.setForeground(new Color(23, 22, 22));
         jlbl_ForgotPassword.setHorizontalAlignment(SwingConstants.CENTER);
         jlbl_ForgotPassword.setText("Reset Password");
-        jlbl_ForgotPassword.setBounds(400, 60, 200, 32);
         contentPanel.add(jlbl_ForgotPassword);
 
         // Username field
@@ -79,12 +84,10 @@ public class Forgot_Password_Panel extends JPanel {
                 }
             }
         });
-        jtf_Username.setBounds(410, 120, 180, 25);
         contentPanel.add(jtf_Username);
 
         jlbl_Username.setForeground(new Color(23, 22, 22));
         jlbl_Username.setText("Username");
-        jlbl_Username.setBounds(320, 120, 80, 25);
         contentPanel.add(jlbl_Username);
 
         // New Password field
@@ -105,12 +108,10 @@ public class Forgot_Password_Panel extends JPanel {
                 }
             }
         });
-        jpf_NewPassword.setBounds(410, 170, 180, 25);
         contentPanel.add(jpf_NewPassword);
 
         jlbl_NewPassword.setForeground(new Color(23, 22, 22));
         jlbl_NewPassword.setText("New Password");
-        jlbl_NewPassword.setBounds(320, 170, 100, 25);
         contentPanel.add(jlbl_NewPassword);
 
         // Confirm Password field
@@ -131,12 +132,10 @@ public class Forgot_Password_Panel extends JPanel {
                 }
             }
         });
-        jpf_ConfirmPassword.setBounds(410, 220, 180, 25);
         contentPanel.add(jpf_ConfirmPassword);
 
         jlbl_ConfirmPassword.setForeground(new Color(23, 22, 22));
         jlbl_ConfirmPassword.setText("Confirm Password");
-        jlbl_ConfirmPassword.setBounds(300, 220, 110, 25);
         contentPanel.add(jlbl_ConfirmPassword);
 
         // Reset Password button
@@ -150,7 +149,6 @@ public class Forgot_Password_Panel extends JPanel {
                 jbtn_ResetPasswordActionPerformed(evt);
             }
         });
-        jbtn_ResetPassword.setBounds(400, 270, 150, 32);
         contentPanel.add(jbtn_ResetPassword);
 
         // Back to Login link
@@ -168,19 +166,19 @@ public class Forgot_Password_Panel extends JPanel {
                 jlbl_BackToLogin.setText("Back to Login");
             }
         });
-        jlbl_BackToLogin.setBounds(430, 320, 100, 16);
         contentPanel.add(jlbl_BackToLogin);
 
         jlbl_Account_Icon.setIcon(new ImageIcon(getClass().getResource("/assets/icon/AccountBlack.png")));
-        jlbl_Account_Icon.setBounds(370, 60, 32, 32);
         contentPanel.add(jlbl_Account_Icon);
 
         jlbl_Background.setIcon(new ImageIcon(getClass().getResource("/assets/image/background(900x410).png")));
-        jlbl_Background.setBounds(0, 0, 910, 410);
         contentPanel.add(jlbl_Background);
         
         // Add content panel to main panel
         add(contentPanel, BorderLayout.CENTER);
+        
+        // Initialize component positions
+        resizeComponents();
         
         // Add component listener to handle resizing
         addComponentListener(new ComponentAdapter() {
@@ -197,30 +195,47 @@ public class Forgot_Password_Panel extends JPanel {
         
         // Calculate center positions
         int centerX = width / 2;
-        int formWidth = 600;  // Width of the form area
-        int leftMargin = centerX - (formWidth / 2);
+        int totalFormWidth = LABEL_WIDTH + FIELD_WIDTH + 10; // 10px gap between label and field
         
-        // Adjust positions based on new size
-        jlbl_ForgotPassword.setBounds(centerX - 100, 60, 200, 32);
-        jlbl_Account_Icon.setBounds(centerX - 130, 60, 32, 32);
+        // Starting Y position
+        int currentY = 60;
         
-        // Username row
-        jlbl_Username.setBounds(leftMargin, 120, 80, 25);
-        jtf_Username.setBounds(leftMargin + 90, 120, 180, 25);
+        // Position title and icon
+        jlbl_ForgotPassword.setBounds(centerX - 100, currentY, 200, 32);
+        jlbl_Account_Icon.setBounds(centerX - 130, currentY, 32, 32);
         
-        // New Password row
-        jlbl_NewPassword.setBounds(leftMargin, 170, 100, 25);
-        jpf_NewPassword.setBounds(leftMargin + 90, 170, 180, 25);
+        currentY += 60; // Move to first row
         
-        // Confirm Password row
-        jlbl_ConfirmPassword.setBounds(leftMargin, 220, 110, 25);
-        jpf_ConfirmPassword.setBounds(leftMargin + 90, 220, 180, 25);
+        // Position username row
+        int labelX = centerX - (totalFormWidth / 2);
+        int fieldX = labelX + LABEL_WIDTH + 10;
         
-        // Reset button
-        jbtn_ResetPassword.setBounds(centerX - 75, 270, 150, 32);
+        jlbl_Username.setBounds(labelX, currentY, LABEL_WIDTH, ROW_HEIGHT);
+        jtf_Username.setBounds(fieldX, currentY, FIELD_WIDTH, ROW_HEIGHT);
         
-        // Back to login link
-        jlbl_BackToLogin.setBounds(centerX - 50, 320, 100, 16);
+        currentY += VERTICAL_GAP; // Move to next row
+        
+        // Position new password row
+        jlbl_NewPassword.setBounds(labelX, currentY, LABEL_WIDTH, ROW_HEIGHT);
+        jpf_NewPassword.setBounds(fieldX, currentY, FIELD_WIDTH, ROW_HEIGHT);
+        
+        currentY += VERTICAL_GAP; // Move to next row
+        
+        // Position confirm password row
+        jlbl_ConfirmPassword.setBounds(labelX, currentY, LABEL_WIDTH, ROW_HEIGHT);
+        jpf_ConfirmPassword.setBounds(fieldX, currentY, FIELD_WIDTH, ROW_HEIGHT);
+        
+        currentY += VERTICAL_GAP; // Move to button row
+        
+        // Position reset button (centered)
+        int buttonWidth = 150;
+        jbtn_ResetPassword.setBounds(centerX - (buttonWidth / 2), currentY, buttonWidth, 32);
+        
+        currentY += 40; // Move to back to login link
+        
+        // Position back to login link (centered)
+        int linkWidth = 100;
+        jlbl_BackToLogin.setBounds(centerX - (linkWidth / 2), currentY, linkWidth, 16);
         
         // Background - stretch to fit panel size
         jlbl_Background.setBounds(0, 0, width, height);

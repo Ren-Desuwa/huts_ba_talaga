@@ -325,6 +325,7 @@ public class Main_Frame extends JFrame {
         showWelcomePanel();
     }
     
+    
     /**
      * Logs out the user and returns to login panel
      */
