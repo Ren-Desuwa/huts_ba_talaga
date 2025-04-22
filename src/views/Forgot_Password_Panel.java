@@ -238,4 +238,3 @@ public class Forgot_Password_Panel extends JPanel {
         jpf_ConfirmPassword.setEchoChar((char) 0);
     }
 }
-</antA

@@ -1,22 +1,82 @@
 package database;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
 public class User_Manager {
-    private Map<String, User> users;
+    private Map<String, User> cachedUsers;
+    private Connection connection;
     
-    public User_Manager() {
-        users = new HashMap<>();
-        // Add some default users for testing
-        addUser(new User("admin", "admin123", "admin@example.com", "Administrator"));
-        addUser(new User("user", "user123", "user@example.com", "Regular User"));
+    public User_Manager(Connection connection) {
+        this.connection = connection;
+        this.cachedUsers = new HashMap<>();
+        // Load users from database
+        loadUsersFromDatabase();
+    }
+    
+    /**
+     * Loads all users from the database into the cache
+     */
+    private void loadUsersFromDatabase() {
+        try {
+            String query = "SELECT username, password, email, full_name FROM users";
+            PreparedStatement statement = connection.prepareStatement(query);
+            ResultSet resultSet = statement.executeQuery();
+            
+            while (resultSet.next()) {
+                String username = resultSet.getString("username");
+                String password = resultSet.getString("password");
+                String email = resultSet.getString("email");
+                String fullName = resultSet.getString("full_name");
+                
+                User user = new User(username, password, email, fullName);
+                cachedUsers.put(username, user);
+            }
+            
+            // If no users exist, add default users
+            if (cachedUsers.isEmpty()) {
+                addUser(new User("admin", "admin123", "admin@example.com", "Administrator"));
+                addUser(new User("user", "user123", "user@example.com", "Regular User"));
+            }
+            
+            resultSet.close();
+            statement.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            // If there's an error, add default users to memory
+            addUser(new User("admin", "admin123", "admin@example.com", "Administrator"));
+            addUser(new User("user", "user123", "user@example.com", "Regular User"));
+        }
     }
     
     public boolean addUser(User user) {
-        if (user != null && !users.containsKey(user.getUsername())) {
-            users.put(user.getUsername(), user);
-            return true;
+        if (user != null && !userExists(user.getUsername())) {
+            // Add to database
+            try {
+                String query = "INSERT INTO users (username, password, email, full_name) VALUES (?, ?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, user.getUsername());
+                statement.setString(2, user.getPassword());
+                statement.setString(3, user.getEmail());
+                statement.setString(4, user.getFullName());
+                
+                int result = statement.executeUpdate();
+                statement.close();
+                
+                if (result > 0) {
+                    // Add to cache
+                    cachedUsers.put(user.getUsername(), user);
+                    return true;
+                }
+                return false;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
         }
         return false;
     }
@@ -25,10 +85,27 @@ public class User_Manager {
      * Updates user password
      */
     public boolean updateUserPassword(String username, String newPassword) {
-        User user = users.get(username);
+        User user = getUser(username);
         if (user != null) {
-            user.setPassword(newPassword);
-            return true;
+            try {
+                String query = "UPDATE users SET password = ? WHERE username = ?";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, newPassword);
+                statement.setString(2, username);
+                
+                int result = statement.executeUpdate();
+                statement.close();
+                
+                if (result > 0) {
+                    // Update in cache
+                    user.setPassword(newPassword);
+                    return true;
+                }
+                return false;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
         }
         return false;
     }
@@ -37,21 +114,21 @@ public class User_Manager {
      * Checks if a username exists
      */
     public boolean userExists(String username) {
-        return users.containsKey(username);
+        return cachedUsers.containsKey(username);
     }
 
     /**
      * Gets user by username
      */
     public User getUser(String username) {
-        return users.get(username);
+        return cachedUsers.get(username);
     }
     
     /**
      * Authenticates a user with given credentials
      */
     public boolean authenticateUser(String username, String password) {
-        User user = users.get(username);
+        User user = getUser(username);
         if (user != null) {
             return user.getPassword().equals(password);
         }
@@ -62,11 +139,29 @@ public class User_Manager {
      * Updates user information
      */
     public boolean updateUserInfo(String username, String email, String fullName) {
-        User user = users.get(username);
+        User user = getUser(username);
         if (user != null) {
-            user.setEmail(email);
-            user.setFullName(fullName);
-            return true;
+            try {
+                String query = "UPDATE users SET email = ?, full_name = ? WHERE username = ?";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, email);
+                statement.setString(2, fullName);
+                statement.setString(3, username);
+                
+                int result = statement.executeUpdate();
+                statement.close();
+                
+                if (result > 0) {
+                    // Update in cache
+                    user.setEmail(email);
+                    user.setFullName(fullName);
+                    return true;
+                }
+                return false;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
         }
         return false;
     }
@@ -75,9 +170,25 @@ public class User_Manager {
      * Removes a user from the system
      */
     public boolean removeUser(String username) {
-        if (users.containsKey(username)) {
-            users.remove(username);
-            return true;
+        if (userExists(username)) {
+            try {
+                String query = "DELETE FROM users WHERE username = ?";
+                PreparedStatement statement = connection.prepareStatement(query);
+                statement.setString(1, username);
+                
+                int result = statement.executeUpdate();
+                statement.close();
+                
+                if (result > 0) {
+                    // Remove from cache
+                    cachedUsers.remove(username);
+                    return true;
+                }
+                return false;
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
         }
         return false;
     }
@@ -86,6 +197,6 @@ public class User_Manager {
      * Gets all users in the system
      */
     public Map<String, User> getAllUsers() {
-        return new HashMap<>(users); // Return a copy to prevent direct modification
+        return new HashMap<>(cachedUsers); // Return a copy to prevent direct modification
     }
 }

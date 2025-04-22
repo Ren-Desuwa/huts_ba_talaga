@@ -179,7 +179,7 @@ public class Login_Panel extends JPanel {
             if (isAuthenticated) {
                 JOptionPane.showMessageDialog(this, "Login successful!");
                 // Show the main application window
-                mainFrame.();
+                mainFrame.showMainContent();
             } else {
                 // Invalid credentials
                 JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);

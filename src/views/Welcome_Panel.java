@@ -2,11 +2,15 @@ package views;
 
 import javax.swing.*;
 import java.awt.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
 import java.util.List;
 import models.*;
 import database.*;
 
 public class Welcome_Panel implements Utility_Panel {
+	private Connection connection;
+    private static final String DB_URL = "jdbc:sqlite:house_utilities.db";
     private JPanel welcomePanel;
     private Main_Frame parentFrame;
     private Database_Manager dbManager;
@@ -18,8 +22,10 @@ public class Welcome_Panel implements Utility_Panel {
     
     
     public Welcome_Panel(Main_Frame parentFrame, Database_Manager dbManager) {
+    	connection = DriverManager.getConnection(DB_URL);
         this.parentFrame = parentFrame;
         this.dbManager = dbManager;
+        this.electricityManager = new Electricity_Manager(null);
         
         // Initialize the panel
         welcomePanel = new JPanel(new BorderLayout());

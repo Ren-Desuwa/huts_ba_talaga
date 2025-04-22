@@ -113,11 +113,11 @@ public class Main_Frame extends JFrame {
         contentArea.setBackground(Color.WHITE);
         
         // Initialize utility panels
-        welcomePanel = new Welcome_Panel(this);
+        welcomePanel = new Welcome_Panel(this, dbManager);
         electricityPanel = new Electricity_Panel(this, previousElectricityReadings);
         gasPanel = new Gas_Panel(this, previousGasReadings);
         waterPanel = new Water_Panel(this, previousWaterReadings);
-        subscriptionPanel = new Subscription_Panel(this, subscriptionManager);
+        subscriptionPanel = new Subscription_Panel(this);
         summaryPanel = new Summary_Panel(this, electricityPanel, gasPanel, waterPanel, subscriptionPanel);
         
         // Add panels to content area

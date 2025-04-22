@@ -23,11 +23,11 @@ public class Summary_Panel {
     private Water_Manager waterManager;
     private Subscription_Manager subscriptionManager;
     
-    
-    // For bill calculations
-    private Map<String, Double> previousElectricityReadings;
-    private Map<String, Double> previousGasReadings;
-    private Map<String, Double> previousWaterReadings;
+    // Reference to other panels
+    private Electricity_Panel electricityPanel;
+    private Gas_Panel gasPanel;
+    private Water_Panel waterPanel;
+    private Subscription_Panel subscriptionPanel;
     
     // UI Components
     private JLabel totalCostLabel;
@@ -35,13 +35,20 @@ public class Summary_Panel {
     private JTable billsTable;
     private DefaultTableModel tableModel;
     
-    public Summary_Panel(Main_Frame mainFrame, Map<String, Double> previousElectricityReadings, 
-            Map<String, Double> previousGasReadings, Map<String, Double> previousWaterReadings) {
+    public Summary_Panel(Main_Frame mainFrame, Electricity_Panel electricityPanel, 
+            Gas_Panel gasPanel, Water_Panel waterPanel, Subscription_Panel subscriptionPanel) {
         this.mainFrame = mainFrame;
         this.dbManager = mainFrame.getDbManager();
-        this.previousElectricityReadings = previousElectricityReadings;
-        this.previousGasReadings = previousGasReadings;
-        this.previousWaterReadings = previousWaterReadings;
+        this.electricityPanel = electricityPanel;
+        this.gasPanel = gasPanel;
+        this.waterPanel = waterPanel;
+        this.subscriptionPanel = subscriptionPanel;
+        
+        // Initialize managers
+        this.electricityManager = new Electricity_Manager(dbManager.getConnection());
+        this.gasManager = new Gas_Manager(dbManager.getConnection());
+        this.waterManager = new Water_Manager(dbManager.getConnection());
+        this.subscriptionManager = new Subscription_Manager(dbManager.getConnection());
         
         initializePanel();
     }
@@ -157,6 +164,8 @@ public class Summary_Panel {
         
         // Add electricity accounts
         for (Electricity account : electricityAccounts) {
+            // Get previous reading from electricityPanel
+            Map<String, Double> previousElectricityReadings = electricityPanel.getPreviousReadings();
             Double previousReading = previousElectricityReadings.get(account.getAccountNumber());
             double usage = 0.0;
             if (previousReading != null) {
@@ -179,6 +188,8 @@ public class Summary_Panel {
         
         // Add gas accounts
         for (Gas account : gasAccounts) {
+            // Get previous reading from gasPanel
+            Map<String, Double> previousGasReadings = gasPanel.getPreviousReadings();
             Double previousReading = previousGasReadings.get(account.getAccountNumber());
             double usage = 0.0;
             if (previousReading != null) {
@@ -201,6 +212,8 @@ public class Summary_Panel {
         
         // Add water accounts
         for (Water account : waterAccounts) {
+            // Get previous reading from waterPanel
+            Map<String, Double> previousWaterReadings = waterPanel.getPreviousReadings();
             Double previousReading = previousWaterReadings.get(account.getAccountNumber());
             double usage = 0.0;
             if (previousReading != null) {

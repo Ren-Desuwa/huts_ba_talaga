@@ -54,7 +54,7 @@ public class Database_Manager {
     }
     
     private void initializeManagers() {
-    	userManager = new User_Manager();
+        userManager = new User_Manager(connection);
         electricityManager = new Electricity_Manager(connection);
         gasManager = new Gas_Manager(connection);
         waterManager = new Water_Manager(connection);
@@ -65,6 +65,14 @@ public class Database_Manager {
     
     private void createTables() {
         try (Statement stmt = connection.createStatement()) {
+            // Create Users table
+            stmt.execute("CREATE TABLE IF NOT EXISTS users (" +
+                    "id TEXT PRIMARY KEY, " +
+                    "username TEXT UNIQUE, " +
+                    "password TEXT, " +
+                    "email TEXT, " +
+                    "full_name TEXT)");
+            
             // Create Household table
             stmt.execute("CREATE TABLE IF NOT EXISTS household (" +
                     "id TEXT PRIMARY KEY, " +
@@ -132,6 +140,10 @@ public class Database_Manager {
     }
     
     // Getters for specialized managers
+    public User_Manager getUserManager() {
+        return userManager;
+    }
+    
     public Electricity_Manager getElectricityManager() {
         return electricityManager;
     }
@@ -194,5 +206,4 @@ public class Database_Manager {
             e.printStackTrace();
         }
     }
-    
 }
