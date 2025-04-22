@@ -41,6 +41,7 @@ public class Main_Frame extends JFrame {
     
     // Database manager instance
     private Database_Manager dbManager;
+    private User_Manager userManager;
     private Subscription_Manager subscriptionManager;
     private Electricity_Manager electricityManager;
     private Gas_Manager gasManager;
@@ -49,10 +50,17 @@ public class Main_Frame extends JFrame {
     
     public Main_Frame() {
         // Initialize database manager
-        dbManager = new Database_Manager();
+        dbManager = Database_Manager.getInstance();
+        
+        // Initialize various managers
+        userManager = new User_Manager(dbManager.getConnection());
+        subscriptionManager = new Subscription_Manager(dbManager.getConnection());
+        electricityManager = new Electricity_Manager(dbManager.getConnection());
+        gasManager = new Gas_Manager(dbManager.getConnection());
+        waterManager = new Water_Manager(dbManager.getConnection());
         
         // Set up window properties
-        setTitle("User Management System");
+        setTitle("Home Utility Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setMinimumSize(new Dimension(900, 450));
         setResizable(false);
@@ -72,17 +80,57 @@ public class Main_Frame extends JFrame {
     }
     
     private void initPanels() {
-        // Create panels
-        loginPanel = new Login_Panel(this, dbManager);
+        // Create authentication panels
+        loginPanel = new Login_Panel(this, userManager);
         signUpPanel = new Sign_Up_Panel(this, dbManager);
         forgotPasswordPanel = new Forgot_Password_Panel(this, dbManager);
-        mainContentPanel = new Main_Content_Panel(this, dbManager);
+        
+        // Initialize main content panel components
+        initMainContentPanel();
         
         // Add panels to content panel with unique identifiers
-        contentPanel.add(loginPanel, LOGIN_PANEL);
-        contentPanel.add(signUpPanel, SIGNUP_PANEL);
-        contentPanel.add(forgotPasswordPanel, FORGOT_PASSWORD_PANEL);
-        contentPanel.add(mainContentPanel, MAIN_CONTENT_PANEL);
+        contentPanel.add(loginPanel.getPanel(), LOGIN_PANEL);
+        contentPanel.add(signUpPanel.getPanel(), SIGNUP_PANEL);
+        contentPanel.add(forgotPasswordPanel.getPanel(), FORGOT_PASSWORD_PANEL);
+        contentPanel.add(mainPanel, MAIN_CONTENT_PANEL);
+    }
+    
+    private void initMainContentPanel() {
+        // Create main panel with border layout
+        mainPanel = new JPanel(new BorderLayout());
+        
+        // Create menu panel
+        menuPanel = new JPanel();
+        menuPanel.setPreferredSize(new Dimension(200, 0));
+        menuPanel.setBackground(new Color(50, 57, 64));
+        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
+        
+        // Add menu buttons
+        addMenuButtons();
+        
+        // Create content panel
+        JPanel contentArea = new JPanel(new CardLayout());
+        contentArea.setBackground(Color.WHITE);
+        
+        // Initialize utility panels
+        welcomePanel = new Welcome_Panel(this);
+        electricityPanel = new Electricity_Panel(this, previousElectricityReadings);
+        gasPanel = new Gas_Panel(this, previousGasReadings);
+        waterPanel = new Water_Panel(this, previousWaterReadings);
+        subscriptionPanel = new Subscription_Panel(this, subscriptionManager);
+        summaryPanel = new Summary_Panel(this, electricityPanel, gasPanel, waterPanel, subscriptionPanel);
+        
+        // Add panels to content area
+        contentArea.add(welcomePanel.getPanel(), "WELCOME");
+        contentArea.add(electricityPanel.getPanel(), "ELECTRICITY");
+        contentArea.add(gasPanel.getPanel(), "GAS");
+        contentArea.add(waterPanel.getPanel(), "WATER");
+        contentArea.add(subscriptionPanel.getPanel(), "SUBSCRIPTION");
+        contentArea.add(summaryPanel.getPanel(), "SUMMARY");
+        
+        // Add components to main panel
+        mainPanel.add(menuPanel, BorderLayout.WEST);
+        mainPanel.add(contentArea, BorderLayout.CENTER);
     }
 
     private void addMenuButtons() {
@@ -92,6 +140,7 @@ public class Main_Frame extends JFrame {
         JButton waterBtn = createMenuButton("Water");
         JButton subscriptionsBtn = createMenuButton("Subscriptions");
         JButton summaryBtn = createMenuButton("Summary");
+        JButton logoutBtn = createMenuButton("Logout");
         
         // Add action listeners
         dashboardBtn.addActionListener(e -> showWelcomePanel());
@@ -100,6 +149,7 @@ public class Main_Frame extends JFrame {
         waterBtn.addActionListener(e -> showWaterPanel());
         subscriptionsBtn.addActionListener(e -> showSubscriptionsPanel());
         summaryBtn.addActionListener(e -> showSummaryPanel());
+        logoutBtn.addActionListener(e -> logout());
         
         // Add buttons to menu panel
         menuPanel.add(Box.createRigidArea(new Dimension(0, 20)));
@@ -117,6 +167,8 @@ public class Main_Frame extends JFrame {
         menuPanel.add(Box.createRigidArea(new Dimension(0, 10)));
         menuPanel.add(summaryBtn);
         menuPanel.add(Box.createVerticalGlue());
+        menuPanel.add(logoutBtn);
+        menuPanel.add(Box.createRigidArea(new Dimension(0, 20)));
     }
 
     private JButton createMenuButton(String text) {
@@ -155,51 +207,39 @@ public class Main_Frame extends JFrame {
     
     // Panel display methods
     private void showWelcomePanel() {
-        contentPanel.removeAll();
+        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
         welcomePanel.refreshPanel();
-        contentPanel.add(welcomePanel.getPanel(), BorderLayout.CENTER);
-        contentPanel.revalidate();
-        contentPanel.repaint();
+        cardLayout.show((JPanel) mainPanel.getComponent(1), "WELCOME");
     }
     
     private void showElectricityPanel() {
-        contentPanel.removeAll();
+        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
         electricityPanel.refreshPanel();
-        contentPanel.add(electricityPanel.getPanel(), BorderLayout.CENTER);
-        contentPanel.revalidate();
-        contentPanel.repaint();
+        cardLayout.show((JPanel) mainPanel.getComponent(1), "ELECTRICITY");
     }
     
     private void showGasPanel() {
-        contentPanel.removeAll();
+        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
         gasPanel.refreshPanel();
-        contentPanel.add(gasPanel.getPanel(), BorderLayout.CENTER);
-        contentPanel.revalidate();
-        contentPanel.repaint();
+        cardLayout.show((JPanel) mainPanel.getComponent(1), "GAS");
     }
     
     private void showWaterPanel() {
-        contentPanel.removeAll();
+        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
         waterPanel.refreshPanel();
-        contentPanel.add(waterPanel.getPanel(), BorderLayout.CENTER);
-        contentPanel.revalidate();
-        contentPanel.repaint();
+        cardLayout.show((JPanel) mainPanel.getComponent(1), "WATER");
     }
     
     private void showSubscriptionsPanel() {
-        contentPanel.removeAll();
+        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
         subscriptionPanel.refreshPanel();
-        contentPanel.add(subscriptionPanel.getPanel(), BorderLayout.CENTER);
-        contentPanel.revalidate();
-        contentPanel.repaint();
+        cardLayout.show((JPanel) mainPanel.getComponent(1), "SUBSCRIPTION");
     }
     
     private void showSummaryPanel() {
-        contentPanel.removeAll();
+        CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
         summaryPanel.refreshPanel();
-        contentPanel.add(summaryPanel.getPanel(), BorderLayout.CENTER);
-        contentPanel.revalidate();
-        contentPanel.repaint();
+        cardLayout.show((JPanel) mainPanel.getComponent(1), "SUMMARY");
     }
     
     private void addSampleData() {
@@ -275,8 +315,12 @@ public class Main_Frame extends JFrame {
      * Shows the main content panel after successful login
      */
     public void showMainContent() {
-        mainContentPanel.refreshPanel();
+        // Add sample data if needed
+        addSampleData();
+        // Show main content panel
         cardLayout.show(contentPanel, MAIN_CONTENT_PANEL);
+        // Default to welcome panel
+        showWelcomePanel();
     }
     
     /**

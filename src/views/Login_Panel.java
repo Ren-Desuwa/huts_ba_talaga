@@ -112,7 +112,7 @@ public class Login_Panel extends JPanel {
         });
         jpf_Password.setBounds(410, 220, 120, 25);
         add(jpf_Password);
-
+        	
         jlbl_Password.setForeground(new Color(23, 22, 22));
         jlbl_Password.setText("Password");
         jlbl_Password.setBounds(390, 200, 70, 16);
