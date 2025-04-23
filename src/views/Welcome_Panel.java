@@ -93,13 +93,13 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
         
         // Background SVG elements - Left
         jlbl_BackgroundLeft = new JLabel();
-        jlbl_BackgroundLeft.setIcon(new ImageIcon(getClass().getResource("/assets/image/background_LEFT(900x410).svg")));
+        jlbl_BackgroundLeft.setIcon(new ImageIcon(getClass().getResource("/assets/image/background_LEFT(12000x700).png")));
         jlbl_BackgroundLeft.setBounds(0, 0, 450, 205);
         contentPanel.add(jlbl_BackgroundLeft);
         
         // Background SVG elements - Right
         jlbl_BackgroundRight = new JLabel();
-        jlbl_BackgroundRight.setIcon(new ImageIcon(getClass().getResource("/assets/image/background_RIGHT(900x410).svg")));
+        jlbl_BackgroundRight.setIcon(new ImageIcon(getClass().getResource("/assets/image/background_RIGHT(12000x700).png")));
         jlbl_BackgroundRight.setBounds(750, 495, 450, 205);
         contentPanel.add(jlbl_BackgroundRight);
         

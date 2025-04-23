@@ -25,7 +25,7 @@ public class Electricity_Manager {
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, id);
-            pstmt.setString(2, userId);  // Add userId parameter
+            pstmt.setString(2, userId);
             pstmt.setString(3, electricity.getName());
             pstmt.setString(4, electricity.getProvider());
             pstmt.setString(5, electricity.getAccountNumber());
@@ -69,7 +69,6 @@ public class Electricity_Manager {
         return electricityList;
     }
     
-    // New method to get electricity accounts for a specific user
     public List<Electricity> getElectricityByUserId(String userId) {
         List<Electricity> electricityList = new ArrayList<>();
         String sql = "SELECT * FROM electricity WHERE user_id = ?";
@@ -145,8 +144,6 @@ public class Electricity_Manager {
         
         return previousReading;
     }
-    
-    
     
     public boolean updateElectricity(Electricity electricity) {
         String sql = "UPDATE electricity SET name = ?, provider = ?, rate_per_kwh = ?, meter_reading = ? WHERE account_number = ?";
@@ -248,31 +245,18 @@ public class Electricity_Manager {
         return null;
     }
     
-    // Update this method to include userId
+    // Primary method for adding electricity with a user ID
     public void addElectricity(Electricity electricity, String userId) {
         saveElectricity(electricity, userId);
     }
     
-    // Keep this method for backwards compatibility
+    // Backwards compatibility method - assigns a default or null user ID
     public void addElectricity(Electricity electricity) {
-        // You may want to log a warning here as this method doesn't associate with a user
-        String sql = "INSERT INTO electricity (id, name, provider, account_number, rate_per_kwh, meter_reading) VALUES (?, ?, ?, ?, ?, ?)";
-        String id = UUID.randomUUID().toString();
+        // Log a warning that this method doesn't associate with a user
+        System.out.println("WARNING: Adding electricity without user ID association");
         
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, id);
-            pstmt.setString(2, electricity.getName());
-            pstmt.setString(3, electricity.getProvider());
-            pstmt.setString(4, electricity.getAccountNumber());
-            pstmt.setDouble(5, electricity.getRatePerKwh());
-            pstmt.setDouble(6, electricity.getMeterReading());
-            pstmt.executeUpdate();
-            
-            // Save initial reading to history
-            historyManager.saveReadingHistory(id, "electricity", electricity.getMeterReading());
-            
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        // Use null for user_id or a default value (like "system")
+        String userId = null; // or "system" if you prefer a default value
+        saveElectricity(electricity, userId);
     }
 }

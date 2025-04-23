@@ -13,6 +13,9 @@ public class Main_Frame extends JFrame {
     private Map<String, Double> previousGasReadings = new HashMap<>();
     private Map<String, Double> previousWaterReadings = new HashMap<>();
     
+    // Current logged-in user
+    private User currentUser = null;
+    
     // UI components
     private JPanel mainPanel;
     private JPanel menuPanel;
@@ -120,9 +123,9 @@ public class Main_Frame extends JFrame {
         JPanel contentArea = new JPanel(new CardLayout());
         contentArea.setBackground(Color.WHITE);
         
-        // Initialize utility panels
+        // Initialize utility panels - pass the current user (initially null)
         welcomePanel = new Welcome_Panel(this, dbManager);
-        electricityPanel = new Electricity_Panel(this, previousElectricityReadings);
+        electricityPanel = new Electricity_Panel(this, previousElectricityReadings, currentUser);
         gasPanel = new Gas_Panel(this, previousGasReadings);
         waterPanel = new Water_Panel(this, previousWaterReadings);
         subscriptionPanel = new Subscription_Panel(this);
@@ -213,6 +216,16 @@ public class Main_Frame extends JFrame {
         return label;
     }
     
+    // Method to set the current user after successful login
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        
+        // Update the user in all panels that need it
+        electricityPanel.setCurrentUser(user);
+        
+        // Update other panels similarly if they need user information
+    }
+    
     // Panel display methods
     private void showWelcomePanel() {
         CardLayout cardLayout = (CardLayout) ((JPanel) mainPanel.getComponent(1)).getLayout();
@@ -249,8 +262,6 @@ public class Main_Frame extends JFrame {
         summaryPanel.refreshPanel();
         cardLayout.show((JPanel) mainPanel.getComponent(1), "SUMMARY");
     }
-    
-   
     
     // Accessor methods that might be needed by panels
     public Database_Manager getDbManager() {
@@ -316,6 +327,15 @@ public class Main_Frame extends JFrame {
      * Logs out the user and returns to login panel
      */
     public void logout() {
+        // Clear user data in panels
+        if (electricityPanel != null) {
+            electricityPanel.clearUserData();
+        }
+        
+        // Clear current user reference
+        this.currentUser = null;
+        
+        // Return to login screen
         showLoginPanel();
     }
     
@@ -402,5 +422,10 @@ public class Main_Frame extends JFrame {
         if (gasPanel != null) gasPanel.refreshPanel();
         if (waterPanel != null) waterPanel.refreshPanel();
         if (subscriptionPanel != null) subscriptionPanel.refreshPanel();
+    }
+    
+    // Getter for current user
+    public User getCurrentUser() {	
+        return currentUser;
     }
 }

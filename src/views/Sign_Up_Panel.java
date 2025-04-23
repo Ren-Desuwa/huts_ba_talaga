@@ -7,6 +7,7 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.UUID;
 
 public class Sign_Up_Panel extends JPanel {
     private final User_Manager userManager;
@@ -334,8 +335,9 @@ public class Sign_Up_Panel extends JPanel {
                 return;
             }
             
-            // Create a new user object
-            User newUser = new User(username, password, email, fullName);
+            // Generate a UUID for the user
+            String userId = userManager.generateNextUserId();
+            User newUser = new User(userId, username, password, email, fullName);
             
             // Use User_Manager to add the user
             boolean success = userManager.addUser(newUser);

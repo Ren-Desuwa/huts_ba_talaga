@@ -35,6 +35,54 @@ public class User_Manager {
         }
     }
     
+    // Add method for Sign_Up_Panel to add a new user
+    public boolean addUser(User user) {
+        // This is essentially the same as saveUser but with a different name
+        // as referenced in Sign_Up_Panel
+        return saveUser(user);
+    }
+    
+    // Add method for Sign_Up_Panel and Login_Panel to check if a user exists
+    public boolean userExists(String username) {
+        String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return false;
+    }
+    
+    // Add method for Login_Panel to get a user by username
+    public User getUser(String username) {
+        return getUserByUsername(username);
+    }
+    
+    // Add method for Forgot_Password_Panel to update a user's password
+    public boolean updateUserPassword(String username, String newPassword) {
+        String sql = "UPDATE users SET password = ? WHERE username = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, newPassword); // Note: In a real app, passwords should be hashed
+            pstmt.setString(2, username);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
     public boolean authenticateUser(String username, String password) {
         String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
         
@@ -154,5 +202,44 @@ public class User_Manager {
             e.printStackTrace();
             return false;
         }
+    }
+ // Get the highest user ID currently in the database
+    public String getHighestUserId() {
+        String sql = "SELECT id FROM users ORDER BY id DESC LIMIT 1";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql);
+             ResultSet rs = pstmt.executeQuery()) {
+            
+            if (rs.next()) {
+                return rs.getString("id");
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        // If no users exist yet, return a starting ID
+        return "USER-0000";
+    }
+
+    // Generate a new sequential ID based on the highest existing ID
+    public String generateNextUserId() {
+        String highestId = getHighestUserId();
+        
+        if (highestId.startsWith("USER-")) {
+            try {
+                // Extract the numeric part
+                int numericPart = Integer.parseInt(highestId.substring(5));
+                // Increment by 1
+                numericPart++;
+                // Format the new ID with leading zeros
+                return String.format("USER-%04d", numericPart);
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        
+        // If there was an issue with the format, fall back to "USER-0001"
+        return "USER-0001";
     }
 }

@@ -232,6 +232,10 @@ public class Login_Panel extends JPanel {
 
             if (isAuthenticated) {
                 JOptionPane.showMessageDialog(this, "Login successful!");
+                
+                // Set the current user in Main_Frame
+                mainFrame.setCurrentUser(user);
+                
                 // Show the main application window
                 mainFrame.showMainContent();
             } else {

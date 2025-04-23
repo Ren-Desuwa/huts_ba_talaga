@@ -83,6 +83,7 @@ public class Database_Manager {
             // Create Utility tables
             stmt.execute("CREATE TABLE IF NOT EXISTS electricity (" +
                     "id TEXT PRIMARY KEY, " +
+                    "user_id TEXT, " +  // Added user_id column
                     "name TEXT, " +
                     "provider TEXT, " +
                     "account_number TEXT, " +
@@ -91,6 +92,7 @@ public class Database_Manager {
             
             stmt.execute("CREATE TABLE IF NOT EXISTS gas (" +
                     "id TEXT PRIMARY KEY, " +
+                    "user_id TEXT, " +  // Added user_id column for consistency
                     "name TEXT, " +
                     "provider TEXT, " +
                     "account_number TEXT, " +
@@ -99,6 +101,7 @@ public class Database_Manager {
             
             stmt.execute("CREATE TABLE IF NOT EXISTS water (" +
                     "id TEXT PRIMARY KEY, " +
+                    "user_id TEXT, " +  // Added user_id column for consistency
                     "name TEXT, " +
                     "provider TEXT, " +
                     "account_number TEXT, " +
@@ -108,6 +111,7 @@ public class Database_Manager {
             // Create Subscription table
             stmt.execute("CREATE TABLE IF NOT EXISTS subscription (" +
                     "id TEXT PRIMARY KEY, " +
+                    "user_id TEXT, " +  // Added user_id column for consistency
                     "name TEXT, " +
                     "provider TEXT, " +
                     "account_number TEXT, " +

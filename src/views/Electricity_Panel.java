@@ -1,11 +1,14 @@
 package views;
 
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
+import java.awt.event.*;
 import java.sql.Connection;
 import java.util.*;
+import java.text.SimpleDateFormat;
 import models.Electricity;
-import models.User;  // Add this import
+import models.User;
 import database.Database_Manager;
 import database.Electricity_Manager;
 
@@ -15,12 +18,21 @@ public class Electricity_Panel implements Utility_Panel {
     private java.util.List<Electricity> electricityAccounts;
     private Map<String, Double> previousElectricityReadings;
     private Electricity_Manager electricityManager;
-    private User currentUser;  // Add user field
+    private User currentUser;
     
-    public Electricity_Panel(Main_Frame parentFrame, Map<String, Double> previousReadings, User currentUser) {  // Updated constructor
+    // UI Components
+    private JTextField dateField;
+    private JTextField amountField;
+    private JTextField kwhField;
+    private JTextField totalSpentField;
+    private JTextField avgMonthlyField;
+    private DefaultTableModel historyTableModel;
+    private JTable historyTable;
+    
+    public Electricity_Panel(Main_Frame parentFrame, Map<String, Double> previousReadings, User currentUser) {
         this.parentFrame = parentFrame;
         this.previousElectricityReadings = previousReadings;
-        this.currentUser = currentUser;  // Set the current user
+        this.currentUser = currentUser;
         Connection connection = Database_Manager.getInstance().getConnection();
         this.electricityManager = new Electricity_Manager(connection);
         
@@ -28,7 +40,220 @@ public class Electricity_Panel implements Utility_Panel {
         electricityPanel = new JPanel(new BorderLayout());
         electricityPanel.setBackground(new Color(240, 240, 240));
         
+        createComponents();
         refreshPanel();
+    }
+    
+    private void createComponents() {
+        // Main content panel with 2-column layout
+        JPanel contentPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        // LEFT SIDE PANEL
+        JPanel leftPanel = new JPanel(new BorderLayout(0, 20));
+        leftPanel.setBackground(new Color(255, 235, 180)); // Light yellow background
+        leftPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        // New Bill Form
+        JPanel addBillPanel = new JPanel(new GridBagLayout());
+        addBillPanel.setBackground(new Color(255, 235, 180));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        
+        // Title
+        JLabel titleLabel = new JLabel("Add New Electricity Bill");
+        titleLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        addBillPanel.add(titleLabel, gbc);
+        
+        // Date field
+        JLabel dateLabel = new JLabel("Date");
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        addBillPanel.add(dateLabel, gbc);
+        
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        dateField = new JTextField(sdf.format(new Date()), 10);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        addBillPanel.add(dateField, gbc);
+        
+        // Amount field
+        JLabel amountLabel = new JLabel("Amount ($)");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        addBillPanel.add(amountLabel, gbc);
+        
+        amountField = new JTextField("1200", 10);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        addBillPanel.add(amountField, gbc);
+        
+        // kWh Used field
+        JLabel kwhLabel = new JLabel("kWh Used (optional)");
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        addBillPanel.add(kwhLabel, gbc);
+        
+        kwhField = new JTextField(10);
+        gbc.gridx = 1;
+        gbc.gridy = 3;
+        addBillPanel.add(kwhField, gbc);
+        
+        // Add Bill button
+        JButton addButton = new JButton("+ Add Bill");
+        addButton.setBackground(new Color(25, 25, 112));
+        addButton.setForeground(Color.WHITE);
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 1;
+        addButton.addActionListener(e -> addElectricityBill());
+        addBillPanel.add(addButton, gbc);
+        
+        // Electric Bill History
+        JPanel historyPanel = new JPanel(new BorderLayout(0, 10));
+        historyPanel.setBackground(new Color(255, 235, 180));
+        
+        JLabel historyLabel = new JLabel("Electric Bill History");
+        historyLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        historyPanel.add(historyLabel, BorderLayout.NORTH);
+        
+        // Table for bill history
+        String[] columnNames = {"Date", "Amount", "kWh Used", "notes"};
+        historyTableModel = new DefaultTableModel(columnNames, 0);
+        historyTable = new JTable(historyTableModel);
+        JScrollPane scrollPane = new JScrollPane(historyTable);
+        historyPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        // Combine panels on left side
+        leftPanel.add(addBillPanel, BorderLayout.NORTH);
+        leftPanel.add(historyPanel, BorderLayout.CENTER);
+        
+        // RIGHT SIDE PANEL
+        JPanel rightPanel = new JPanel(new BorderLayout(0, 20));
+        rightPanel.setBackground(Color.WHITE);
+        rightPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        
+        // Histogram Panel
+        JPanel histogramPanel = new JPanel(new BorderLayout(0, 10));
+        histogramPanel.setBackground(Color.WHITE);
+        
+        JLabel histogramLabel = new JLabel("Histogram");
+        histogramLabel.setFont(new Font("Arial", Font.BOLD, 18));
+        histogramPanel.add(histogramLabel, BorderLayout.NORTH);
+        
+        // Placeholder for histogram
+        JPanel chartPanel = new JPanel();
+        chartPanel.setPreferredSize(new Dimension(0, 250));
+        chartPanel.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+        histogramPanel.add(chartPanel, BorderLayout.CENTER);
+        
+        // Stats Panel
+        JPanel statsPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        statsPanel.setBackground(Color.WHITE);
+        
+        // Left stats (totals)
+        JPanel totalsPanel = new JPanel(new GridBagLayout());
+        totalsPanel.setBackground(new Color(255, 235, 180)); // Same yellow background
+        GridBagConstraints statsGbc = new GridBagConstraints();
+        statsGbc.fill = GridBagConstraints.HORIZONTAL;
+        statsGbc.anchor = GridBagConstraints.WEST;
+        statsGbc.insets = new Insets(5, 5, 5, 5);
+        
+        // Total Spent
+        JLabel totalLabel = new JLabel("Total Spent (This Year)");
+        statsGbc.gridx = 0;
+        statsGbc.gridy = 0;
+        totalsPanel.add(totalLabel, statsGbc);
+        
+        totalSpentField = new JTextField("php 520");
+        totalSpentField.setEditable(false);
+        statsGbc.gridx = 0;
+        statsGbc.gridy = 1;
+        totalsPanel.add(totalSpentField, statsGbc);
+        
+        // Average Monthly Cost
+        JLabel avgLabel = new JLabel("Average Monthly Cost");
+        statsGbc.gridx = 0;
+        statsGbc.gridy = 2;
+        totalsPanel.add(avgLabel, statsGbc);
+        
+        avgMonthlyField = new JTextField("php 120");
+        avgMonthlyField.setEditable(false);
+        statsGbc.gridx = 0;
+        statsGbc.gridy = 3;
+        totalsPanel.add(avgMonthlyField, statsGbc);
+        
+        // Right stats (usage trend)
+        JPanel trendPanel = new JPanel(new GridBagLayout());
+        trendPanel.setBackground(new Color(255, 235, 180)); // Same yellow background
+        GridBagConstraints trendGbc = new GridBagConstraints();
+        trendGbc.fill = GridBagConstraints.HORIZONTAL;
+        trendGbc.insets = new Insets(5, 5, 5, 5);
+        
+        JLabel trendLabel = new JLabel("Usage Trend");
+        trendLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        trendGbc.gridx = 0;
+        trendGbc.gridy = 0;
+        trendGbc.gridwidth = 2;
+        trendPanel.add(trendLabel, trendGbc);
+        
+        // January
+        JLabel janPercentLabel = new JLabel("2%");
+        janPercentLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        trendGbc.gridx = 0;
+        trendGbc.gridy = 1;
+        trendGbc.gridwidth = 1;
+        trendPanel.add(janPercentLabel, trendGbc);
+        
+        JLabel janMonthLabel = new JLabel("Month of January");
+        trendGbc.gridx = 1;
+        trendGbc.gridy = 1;
+        trendPanel.add(janMonthLabel, trendGbc);
+        
+        // February
+        JLabel febPercentLabel = new JLabel("4%");
+        febPercentLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        trendGbc.gridx = 0;
+        trendGbc.gridy = 2;
+        trendPanel.add(febPercentLabel, trendGbc);
+        
+        JLabel febMonthLabel = new JLabel("Month of Febuary");
+        trendGbc.gridx = 1;
+        trendGbc.gridy = 2;
+        trendPanel.add(febMonthLabel, trendGbc);
+        
+        // March
+        JLabel marPercentLabel = new JLabel("8%");
+        marPercentLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        trendGbc.gridx = 0;
+        trendGbc.gridy = 3;
+        trendPanel.add(marPercentLabel, trendGbc);
+        
+        JLabel marMonthLabel = new JLabel("Month of March");
+        trendGbc.gridx = 1;
+        trendGbc.gridy = 3;
+        trendPanel.add(marMonthLabel, trendGbc);
+        
+        // Add stats panels
+        statsPanel.add(totalsPanel);
+        statsPanel.add(trendPanel);
+        
+        // Combine panels on right side
+        rightPanel.add(histogramPanel, BorderLayout.NORTH);
+        rightPanel.add(statsPanel, BorderLayout.CENTER);
+        
+        // Add both sides to the content panel
+        contentPanel.add(leftPanel);
+        contentPanel.add(rightPanel);
+        
+        // Add content panel to main panel
+        electricityPanel.add(contentPanel, BorderLayout.CENTER);
     }
     
     @Override
@@ -38,81 +263,108 @@ public class Electricity_Panel implements Utility_Panel {
     
     @Override
     public void refreshPanel() {
-        // Clear the panel
-        electricityPanel.removeAll();
+        // Clear the table
+        historyTableModel.setRowCount(0);
         
         // Fetch only the current user's data
         if (currentUser != null) {
             electricityAccounts = electricityManager.getElectricityByUserId(currentUser.getId());
+            
+            // Populate the table with electricity accounts data
+            for (Electricity account : electricityAccounts) {
+                Object[] row = {
+                    account.getName(),
+                    "$" + account.getRatePerKwh() * account.getMeterReading(),
+                    account.getMeterReading(),
+                    ""
+                };
+                historyTableModel.addRow(row);
+            }
+            
+            // Calculate and update statistics
+            updateStatistics();
         } else {
             electricityAccounts = new ArrayList<>(); // Empty list if no user logged in
         }
         
-        // Add title
-        JLabel titleLabel = new JLabel("Electricity Management");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 20));
-        titleLabel.setHorizontalAlignment(JLabel.CENTER);
-        titleLabel.setBorder(BorderFactory.createEmptyBorder(15, 0, 15, 0));
-        
-        // Create buttons panel
-        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonsPanel.setBackground(new Color(240, 240, 240));
-        buttonsPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 10, 10));
-        
-        JButton addButton = new JButton("Add Account");
-        JButton updateButton = new JButton("Update Reading");
-        JButton calculateButton = new JButton("Calculate Bill");
-        JButton removeButton = new JButton("Remove Account");
-        
-        // Disable buttons if no user is logged in
-        if (currentUser == null) {
-            addButton.setEnabled(false);
-            updateButton.setEnabled(false);
-            calculateButton.setEnabled(false);
-            removeButton.setEnabled(false);
-        }
-        
-        addButton.addActionListener(e -> addElectricityAccount());
-        updateButton.addActionListener(e -> updateElectricityReading());
-        calculateButton.addActionListener(e -> calculateElectricityBill());
-        removeButton.addActionListener(e -> removeElectricityAccount());
-        
-        buttonsPanel.add(addButton);
-        buttonsPanel.add(updateButton);
-        buttonsPanel.add(calculateButton);
-        buttonsPanel.add(removeButton);
-        
-        // Create table for data
-        JPanel tablePanel = new JPanel(new BorderLayout());
-        tablePanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        String[] columnNames = {"Name", "Provider", "Account Number", "Current Reading", "Rate ($/kWh)"};
-        Object[][] data = new Object[electricityAccounts.size()][5];
-        
-        for (int i = 0; i < electricityAccounts.size(); i++) {
-            Electricity account = electricityAccounts.get(i);
-            data[i][0] = account.getName();
-            data[i][1] = account.getProvider();
-            data[i][2] = account.getAccountNumber();
-            data[i][3] = account.getMeterReading();
-            data[i][4] = account.getRatePerKwh();
-        }
-        
-        JTable table = new JTable(data, columnNames);
-        JScrollPane scrollPane = new JScrollPane(table);
-        tablePanel.add(scrollPane, BorderLayout.CENTER);
-        
-        // Add components to electricity panel
-        electricityPanel.add(titleLabel, BorderLayout.NORTH);
-        electricityPanel.add(buttonsPanel, BorderLayout.SOUTH);
-        electricityPanel.add(tablePanel, BorderLayout.CENTER);
-        
+        // Refresh UI components
         electricityPanel.revalidate();
         electricityPanel.repaint();
     }
     
-    // Update the addElectricityAccount method to use the current user's ID
+    // Method to add a new electricity bill
+    private void addElectricityBill() {
+        // Check if user is logged in
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Please log in to add an electricity bill.", 
+                "Authentication Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        try {
+            String date = dateField.getText();
+            String amountStr = amountField.getText();
+            String kwhStr = kwhField.getText();
+            
+            if (date.isEmpty() || amountStr.isEmpty()) {
+                JOptionPane.showMessageDialog(parentFrame, 
+                    "Date and Amount are required fields.", 
+                    "Input Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            double amount = Double.parseDouble(amountStr);
+            double kwh = kwhStr.isEmpty() ? 0.0 : Double.parseDouble(kwhStr);
+            
+            // Create a new electricity record with basic details
+            // In a real app, you would need to create a Bill entity separate from Account
+            Electricity electricity = new Electricity("Bill " + date, "Provider", "ACC" + System.currentTimeMillis(), amount / (kwh > 0 ? kwh : 100));
+            electricity.setMeterReading(kwh);
+            
+            // Save to database with current user's ID
+            electricityManager.addElectricity(electricity, currentUser.getId());
+            
+            // Store the initial reading as the previous reading
+            previousElectricityReadings.put(electricity.getAccountNumber(), kwh);
+            
+            // Clear form fields
+            dateField.setText(new SimpleDateFormat("yyyy-MM-dd").format(new Date()));
+            amountField.setText("");
+            kwhField.setText("");
+            
+            // Refresh the panel
+            refreshPanel();
+            
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Electricity bill added successfully!", 
+                "Success", JOptionPane.INFORMATION_MESSAGE);
+            
+        } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Please enter valid numbers for Amount and kWh.", 
+                "Input Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+    
+    // Method to update statistics
+    private void updateStatistics() {
+        double totalSpent = 0.0;
+        
+        for (Electricity account : electricityAccounts) {
+            double previousReading = previousElectricityReadings.getOrDefault(account.getAccountNumber(), 0.0);
+            double bill = account.calculateBill(previousReading);
+            totalSpent += bill;
+        }
+        
+        // Update statistics fields
+        totalSpentField.setText("php " + (int)totalSpent);
+        avgMonthlyField.setText("php " + (electricityAccounts.isEmpty() ? 0 : (int)(totalSpent / 4))); // Simple average
+    }
+    
+    // Original methods kept for compatibility
     private void addElectricityAccount() {
+        // Implementation as in original code
         // Check if user is logged in
         if (currentUser == null) {
             JOptionPane.showMessageDialog(parentFrame, 
@@ -200,10 +452,8 @@ public class Electricity_Panel implements Utility_Panel {
         dialog.setVisible(true);
     }
     
-    // The remaining methods need minimal changes to ensure they work with the user-filtered data
-    
     private void updateElectricityReading() {
-        // Check if user is logged in
+        // Implementation as in original code
         if (currentUser == null) {
             JOptionPane.showMessageDialog(parentFrame, 
                 "Please log in to update electricity readings.", 
@@ -280,7 +530,7 @@ public class Electricity_Panel implements Utility_Panel {
     }
     
     private void calculateElectricityBill() {
-        // Check if user is logged in
+        // Implementation as in original code
         if (currentUser == null) {
             JOptionPane.showMessageDialog(parentFrame, 
                 "Please log in to calculate electricity bills.", 
@@ -361,7 +611,7 @@ public class Electricity_Panel implements Utility_Panel {
     }
     
     private void removeElectricityAccount() {
-        // Check if user is logged in
+        // Implementation as in original code
         if (currentUser == null) {
             JOptionPane.showMessageDialog(parentFrame, 
                 "Please log in to remove electricity accounts.", 
@@ -429,7 +679,6 @@ public class Electricity_Panel implements Utility_Panel {
         
         dialog.setVisible(true);
     }
-
     
     public java.util.List<Electricity> getElectricityAccounts() {
         return electricityAccounts;
