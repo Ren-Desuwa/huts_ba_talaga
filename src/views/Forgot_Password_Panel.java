@@ -1,12 +1,14 @@
 package views;
 
 import database.Database_Manager;
+import database.User_Manager;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
 public class Forgot_Password_Panel extends JPanel {
-    private final Database_Manager dbManager;
+    private final User_Manager userManager;
     private final Main_Frame mainFrame;
 
     // UI Components
@@ -34,8 +36,8 @@ public class Forgot_Password_Panel extends JPanel {
     /**
      * Creates new Forgot Password Panel
      */
-    public Forgot_Password_Panel(Main_Frame mainFrame, Database_Manager dbManager) {
-        this.dbManager = dbManager;
+    public Forgot_Password_Panel(Main_Frame mainFrame, User_Manager userManager) {
+        this.userManager = userManager;
         this.mainFrame = mainFrame;
         initComponents();
     }
@@ -269,13 +271,13 @@ public class Forgot_Password_Panel extends JPanel {
         
         try {
             // Check if username exists
-            if (!dbManager.userExists(username)) {
+            if (!userManager.userExists(username)) {
                 JOptionPane.showMessageDialog(this, "Username does not exist", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
             // Update password
-            boolean success = dbManager.updatePassword(username, newPassword);
+            boolean success = userManager.updateUserPassword(username, newPassword);
             
             if (success) {
                 JOptionPane.showMessageDialog(this, "Password reset successful! Please log in with your new password.", 

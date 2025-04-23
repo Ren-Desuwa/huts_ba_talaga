@@ -37,19 +37,10 @@ public class User_Manager {
                 cachedUsers.put(username, user);
             }
             
-            // If no users exist, add default users
-            if (cachedUsers.isEmpty()) {
-                addUser(new User("admin", "admin123", "admin@example.com", "Administrator"));
-                addUser(new User("user", "user123", "user@example.com", "Regular User"));
-            }
-            
             resultSet.close();
             statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
-            // If there's an error, add default users to memory
-            addUser(new User("admin", "admin123", "admin@example.com", "Administrator"));
-            addUser(new User("user", "user123", "user@example.com", "Regular User"));
         }
     }
     
@@ -198,5 +189,11 @@ public class User_Manager {
      */
     public Map<String, User> getAllUsers() {
         return new HashMap<>(cachedUsers); // Return a copy to prevent direct modification
+    }
+    public void reloadUsersFromDatabase() {
+        // Clear the existing cache
+        cachedUsers.clear();
+        // Reload from database
+        loadUsersFromDatabase();
     }
 }

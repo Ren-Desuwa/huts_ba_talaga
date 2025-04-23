@@ -128,11 +128,11 @@ public class Subscription_Manager {
         }
     }
     
-    public boolean deleteSubscription(String accountNumber) {
-        String sql = "DELETE FROM subscription WHERE account_number = ?";
+    public boolean deleteSubscription(String id) {
+        String sql = "DELETE FROM subscription WHERE id = ?";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, accountNumber);
+            pstmt.setString(1, id);
             int rowsAffected = pstmt.executeUpdate();
             return rowsAffected > 0;
         } catch (SQLException e) {

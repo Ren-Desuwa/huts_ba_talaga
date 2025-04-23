@@ -176,32 +176,6 @@ public class Database_Manager {
         return this.connection;
     }
     
-    public User registerUser(String username, String password, String email, String fullName) {
-        if (!userManager.userExists(username)) {
-            User newUser = new User(username, password, email, fullName);
-            boolean success = userManager.addUser(newUser);
-            
-            // If registration was successful, return the user object
-            // so the calling code can use it to establish a session
-            if (success) {
-                return newUser;
-            }
-        }
-        return null;  // Return null if registration failed
-    }
-    
-    public boolean updatePassword(String username, String newPassword) {
-        return userManager.updateUserPassword(username, newPassword);
-    }
-    
-    public boolean userExists(String username) {
-        return userManager.userExists(username);
-    }
-    
-    public User getUser(String username) {
-        return userManager.getUser(username);
-    }
-    
     // Close connection
     public void closeConnection() {
         try {

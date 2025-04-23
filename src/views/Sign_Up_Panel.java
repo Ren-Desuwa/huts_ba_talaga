@@ -1,13 +1,14 @@
 package views;
 
-import database.Database_Manager;
+import database.User_Manager;
+import database.User;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
 
 public class Sign_Up_Panel extends JPanel {
-    private final Database_Manager dbManager;
+    private final User_Manager userManager;
     private final Main_Frame mainFrame;
 
     // UI Components
@@ -30,8 +31,8 @@ public class Sign_Up_Panel extends JPanel {
     /**
      * Creates new Sign Up Panel
      */
-    public Sign_Up_Panel(Main_Frame mainFrame, Database_Manager dbManager) {
-        this.dbManager = dbManager;
+    public Sign_Up_Panel(Main_Frame mainFrame, User_Manager userManager) {
+        this.userManager = userManager;
         this.mainFrame = mainFrame;
         initComponents();
     }
@@ -326,21 +327,24 @@ public class Sign_Up_Panel extends JPanel {
         }
         
         try {
-            // Check if username already exists
-            if (dbManager.userExists(username)) {
+            // Check if username already exists using User_Manager
+            if (userManager.userExists(username)) {
                 JOptionPane.showMessageDialog(this, "Username already exists", "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
             
-            // Register the user - now returns User object instead of boolean
-            database.User newUser = dbManager.registerUser(username, password, email, fullName);
+            // Create a new user object
+            User newUser = new User(username, password, email, fullName);
             
-            if (newUser != null) {
-                // Registration was successful and user is automatically authenticated
+            // Use User_Manager to add the user
+            boolean success = userManager.addUser(newUser);
+            
+            if (success) {
+                // Registration was successful
                 JOptionPane.showMessageDialog(this, "Registration successful!", "Success", JOptionPane.INFORMATION_MESSAGE);
                 
-                // Navigate to the main content panel
-                mainFrame.showMainContent();
+                // Navigate to the login panel
+                mainFrame.showLoginPanel();
             } else {
                 JOptionPane.showMessageDialog(this, "Failed to register user", "Error", JOptionPane.ERROR_MESSAGE);
             }

@@ -43,7 +43,7 @@ public class Main_Frame extends JFrame {
     
     // Size constants
     private static final Dimension AUTH_PANEL_SIZE = new Dimension(600, 400);
-    private static final Dimension MAIN_PANEL_SIZE = new Dimension(900, 450);
+    private static final Dimension MAIN_PANEL_SIZE = new Dimension(1200, 700);
     
     // Database manager instance
     private Database_Manager dbManager;
@@ -66,7 +66,7 @@ public class Main_Frame extends JFrame {
         waterManager = new Water_Manager(dbManager.getConnection());
         
         // Set up window properties
-        setTitle("Home Utility Management System");
+        setTitle("Home Utility Tracking System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setResizable(true);
         
@@ -90,8 +90,8 @@ public class Main_Frame extends JFrame {
     private void initPanels() {
         // Create authentication panels
         loginPanel = new Login_Panel(this, userManager);
-        signUpPanel = new Sign_Up_Panel(this, dbManager);
-        forgotPasswordPanel = new Forgot_Password_Panel(this, dbManager);
+        signUpPanel = new Sign_Up_Panel(this, userManager);
+        forgotPasswordPanel = new Forgot_Password_Panel(this, userManager);
         
         // Initialize main content panel components
         initMainContentPanel();
@@ -250,48 +250,7 @@ public class Main_Frame extends JFrame {
         cardLayout.show((JPanel) mainPanel.getComponent(1), "SUMMARY");
     }
     
-    private void addSampleData() {
-        // Check if we already have data in the database
-        java.util.List<Electricity> electricityAccounts = electricityManager.getAllElectricity();
-        java.util.List<Gas> gasAccounts = gasManager.getAllGas();
-        java.util.List<Water> waterAccounts = waterManager.getAllWater();
-        java.util.List<Subscription> subscriptions = subscriptionManager.getAllSubscriptions();
-        
-        // Only add sample data if no data exists
-        if (electricityAccounts.isEmpty() && gasAccounts.isEmpty() && waterAccounts.isEmpty() && subscriptions.isEmpty()) {
-            // Add sample electricity account
-            Electricity electricity = new Electricity("Home Electricity", "Power Company", "EL-12345", 0.12);
-            electricity.setMeterReading(1000.0);
-            electricityManager.saveElectricity(electricity);
-            previousElectricityReadings.put(electricity.getAccountNumber(), electricity.getMeterReading());
-            
-            // Add sample gas account
-            Gas gas = new Gas("Home Gas", "Gas Company", "GS-67890", 0.85);
-            gas.setMeterReading(500.0);
-            gasManager.saveGas(gas);
-            previousGasReadings.put(gas.getAccountNumber(), gas.getMeterReading());
-            
-            // Add sample water account
-            Water water = new Water("Home Water", "Water Company", "WT-54321", 2.5);
-            water.setMeterReading(150.0);
-            waterManager.saveWater(water);
-            previousWaterReadings.put(water.getAccountNumber(), water.getMeterReading());
-            
-            // Add sample subscriptions
-            Subscription internet = new Subscription("Home Internet", "ISP Provider", "NET-123", SubscriptionType.INTERNET, 49.99);
-            subscriptionManager.saveSubscription(internet);
-            
-            Subscription streaming = new Subscription("Movie Streaming", "StreamFlix", "STR-456", SubscriptionType.STREAMING, 14.99);
-            subscriptionManager.saveSubscription(streaming);
-            
-            Subscription mobile = new Subscription("Mobile Phone", "TeleCom", "PHN-789", SubscriptionType.PHONE, 39.99);
-            subscriptionManager.saveSubscription(mobile);
-            
-            JOptionPane.showMessageDialog(this, 
-                "Sample data has been added to the database.", 
-                "Sample Data", JOptionPane.INFORMATION_MESSAGE);
-        }
-    }
+   
     
     // Accessor methods that might be needed by panels
     public Database_Manager getDbManager() {
@@ -332,14 +291,16 @@ public class Main_Frame extends JFrame {
         // Resize the frame for the main panel
         resizeFrame(MAIN_PANEL_SIZE);
         
-        // Add sample data if needed
-        addSampleData();
-        
         // Show main content panel
         cardLayout.show(contentPanel, MAIN_CONTENT_PANEL);
         
         // Default to welcome panel
         showWelcomePanel();
+        
+        // Force revalidation to ensure proper sizing
+        revalidateAllPanels();
+        validate();
+        repaint();
     }
     
     /**

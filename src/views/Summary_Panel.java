@@ -250,7 +250,7 @@ public class Summary_Panel {
         }
         
         // Update total cost label
-        totalCostLabel.setText(String.format("$%.2f", totalCost));
+        totalCostLabel.setText(String.format("php%.2f", totalCost));
         
         // Update chart
         updateChartPanel();
@@ -268,7 +268,7 @@ public class Summary_Panel {
             String costStr = (String) tableModel.getValueAt(i, 5);
             
             // Remove the $ sign and parse the cost
-            double cost = Double.parseDouble(costStr.replace("$", "").trim());
+            double cost = Double.parseDouble(costStr.replace("php", "").trim());
             
             costByCategory.put(category, costByCategory.getOrDefault(category, 0.0) + cost);
         }
@@ -315,7 +315,7 @@ public class Summary_Panel {
             
             // Create labels
             JLabel categoryLabel = new JLabel(category, SwingConstants.CENTER);
-            JLabel costLabel = new JLabel(String.format("$%.2f", cost), SwingConstants.CENTER);
+            JLabel costLabel = new JLabel(String.format("php%.2f", cost), SwingConstants.CENTER);
             JLabel percentLabel = new JLabel(String.format("%.1f%%", percentage), SwingConstants.CENTER);
             
             // Add components to panel
@@ -369,7 +369,7 @@ public class Summary_Panel {
                 
                 // Add type summaries
                 for (Map.Entry<String, Double> entry : costByType.entrySet()) {
-                    reportBuilder.append(String.format("%-15s $%.2f\n", entry.getKey() + ":", entry.getValue()));
+                    reportBuilder.append(String.format("%-15s php%.2f\n", entry.getKey() + ":", entry.getValue()));
                 }
                 
                 reportBuilder.append("\nDETAILED BILL BREAKDOWN:\n");
@@ -387,7 +387,7 @@ public class Summary_Panel {
                     String unit = (String) tableModel.getValueAt(i, 4);
                     String cost = (String) tableModel.getValueAt(i, 5);
                     
-                    reportBuilder.append(String.format("%-15s %-20s %-20s %-10s %-5s $%-10s\n", 
+                    reportBuilder.append(String.format("%-15s %-20s %-20s %-10s %-5s php%-10s\n", 
                         type, account, provider, usage, unit, cost));
                 }
                 

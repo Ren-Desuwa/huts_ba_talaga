@@ -57,6 +57,13 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
         }
     }
     
+    @Override
+    public void addNotify() {
+        super.addNotify();
+        // Call resizeComponents once the panel is added to the container hierarchy
+        SwingUtilities.invokeLater(this::resizeComponents);
+    }
+    
     private void initComponents() {
         // Content panel to hold all components
         contentPanel = new JPanel();
@@ -75,25 +82,27 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
         
         headerPanel.add(iconLabel);
         headerPanel.add(welcomeLabel);
-        headerPanel.setBounds(200, 40, 500, 50);
+        headerPanel.setBounds(250, 60, 700, 50);  // Adjusted from (200, 40, 500, 50)
+        
         contentPanel.add(headerPanel);
         
         // Initialize stats panel
         statsPanel = new JPanel(new GridLayout(2, 2, 20, 20));
         statsPanel.setOpaque(false);
-        statsPanel.setBounds(200, 120, 500, 250);
+        statsPanel.setBounds(200, 150, 800, 350);  // Adjusted from (200, 120, 500, 250)
         contentPanel.add(statsPanel);
         
         // Background image
         jlbl_Background = new JLabel();
         jlbl_Background.setIcon(new ImageIcon(getClass().getResource("/assets/image/background(900x410).png")));
-        jlbl_Background.setBounds(0, 0, 900, 410);
+        jlbl_Background.setBounds(0, 0, 1200, 700);
         contentPanel.add(jlbl_Background);
         
         // Add content panel to main panel
         add(contentPanel, BorderLayout.CENTER);
         
         // Load data
+        resizeComponents();
         refreshPanel();
     }
     
@@ -105,14 +114,14 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
         int centerX = width / 2;
         
         // Adjust header position
-        int headerWidth = 500;
+        int headerWidth = 700;  // Increased from 500
         int headerHeight = 50;
-        contentPanel.getComponent(0).setBounds(centerX - (headerWidth / 2), 40, headerWidth, headerHeight);
+        contentPanel.getComponent(0).setBounds(centerX - (headerWidth / 2), 60, headerWidth, headerHeight);
         
         // Adjust stats panel position
-        int statsPanelWidth = Math.min(500, width - 100);
-        int statsPanelHeight = 250;
-        statsPanel.setBounds(centerX - (statsPanelWidth / 2), 120, statsPanelWidth, statsPanelHeight);
+        int statsPanelWidth = Math.min(800, width - 200);  // Increased from 500
+        int statsPanelHeight = 350;  // Increased from 250
+        statsPanel.setBounds(centerX - (statsPanelWidth / 2), 150, statsPanelWidth, statsPanelHeight);
         
         // Adjust background to fill the panel
         jlbl_Background.setBounds(0, 0, width, height);
@@ -147,6 +156,10 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
             // Refresh UI
             statsPanel.revalidate();
             statsPanel.repaint();
+            
+            // Force layout update for the entire panel
+            revalidate();
+            repaint();
         } catch (Exception e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(this, "Error loading data: " + e.getMessage(),
