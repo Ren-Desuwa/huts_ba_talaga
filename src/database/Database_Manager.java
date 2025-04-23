@@ -83,7 +83,7 @@ public class Database_Manager {
             // Create Utility tables
             stmt.execute("CREATE TABLE IF NOT EXISTS electricity (" +
                     "id TEXT PRIMARY KEY, " +
-                    "user_id TEXT, " +  // Added user_id column
+                    "user_id TEXT, " +
                     "name TEXT, " +
                     "provider TEXT, " +
                     "account_number TEXT, " +
@@ -92,7 +92,7 @@ public class Database_Manager {
             
             stmt.execute("CREATE TABLE IF NOT EXISTS gas (" +
                     "id TEXT PRIMARY KEY, " +
-                    "user_id TEXT, " +  // Added user_id column for consistency
+                    "user_id TEXT, " +
                     "name TEXT, " +
                     "provider TEXT, " +
                     "account_number TEXT, " +
@@ -101,7 +101,7 @@ public class Database_Manager {
             
             stmt.execute("CREATE TABLE IF NOT EXISTS water (" +
                     "id TEXT PRIMARY KEY, " +
-                    "user_id TEXT, " +  // Added user_id column for consistency
+                    "user_id TEXT, " +
                     "name TEXT, " +
                     "provider TEXT, " +
                     "account_number TEXT, " +
@@ -111,7 +111,7 @@ public class Database_Manager {
             // Create Subscription table
             stmt.execute("CREATE TABLE IF NOT EXISTS subscription (" +
                     "id TEXT PRIMARY KEY, " +
-                    "user_id TEXT, " +  // Added user_id column for consistency
+                    "user_id TEXT, " +
                     "name TEXT, " +
                     "provider TEXT, " +
                     "account_number TEXT, " +
@@ -119,16 +119,19 @@ public class Database_Manager {
                     "monthly_cost REAL, " +
                     "next_billing_date TEXT)");
             
-            // Create Bill table
+            // Create Bill table - UPDATED to include more fields for Electricity_Panel
             stmt.execute("CREATE TABLE IF NOT EXISTS bill (" +
                     "id TEXT PRIMARY KEY, " +
                     "utility_id TEXT, " +
+                    "utility_type TEXT, " + // Added to distinguish between electricity, gas, water
+                    "user_id TEXT, " + // Added to filter bills by user
                     "amount REAL, " +
                     "consumption REAL, " +
                     "issue_date TEXT, " +
                     "due_date TEXT, " +
                     "is_paid INTEGER, " +
-                    "paid_date TEXT)");
+                    "paid_date TEXT, " +
+                    "notes TEXT)"); // Added for additional bill notes
             
             // Create reading history table
             stmt.execute("CREATE TABLE IF NOT EXISTS reading_history (" +
@@ -137,6 +140,15 @@ public class Database_Manager {
                     "utility_type TEXT, " +
                     "reading_date TEXT, " +
                     "reading_value REAL)");
+            
+            // NEW: Create electricity bill statistics table for faster querying
+            stmt.execute("CREATE TABLE IF NOT EXISTS electricity_stats (" +
+                    "id TEXT PRIMARY KEY, " +
+                    "user_id TEXT, " +
+                    "year INTEGER, " +
+                    "month INTEGER, " +
+                    "total_kwh REAL, " +
+                    "total_cost REAL)");
             
         } catch (SQLException e) {
             e.printStackTrace();
@@ -188,6 +200,83 @@ public class Database_Manager {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+        }
+    }
+    
+    // Method to check if the database needs migration (for future updates)
+    public boolean checkMigrationNeeded() {
+        try (Statement stmt = connection.createStatement()) {
+            // Check if electricity_stats table exists
+            ResultSet rs = connection.getMetaData().getTables(null, null, "electricity_stats", null);
+            if (!rs.next()) {
+                return true;
+            }
+            
+            // Add more checks as needed
+            
+            return false;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // Method to get statistics for the Electricity_Panel
+    public double[] getElectricityStatsByUser(String userId, int year) {
+        double[] monthlyData = new double[12]; // One value for each month
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(
+                "SELECT month, total_cost FROM electricity_stats WHERE user_id = ? AND year = ? ORDER BY month")) {
+            pstmt.setString(1, userId);
+            pstmt.setInt(2, year);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                int month = rs.getInt("month") - 1; // 0-based array
+                double totalCost = rs.getDouble("total_cost");
+                monthlyData[month] = totalCost;
+            }
+            
+            return monthlyData;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return monthlyData; // Return empty array on error
+        }
+    }
+    
+    // Method to get total yearly electricity cost for a user
+    public double getTotalYearlyElectricityCost(String userId, int year) {
+        try (PreparedStatement pstmt = connection.prepareStatement(
+                "SELECT SUM(total_cost) as yearly_total FROM electricity_stats WHERE user_id = ? AND year = ?")) {
+            pstmt.setString(1, userId);
+            pstmt.setInt(2, year);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getDouble("yearly_total");
+            }
+            return 0.0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0.0;
+        }
+    }
+    
+    // Method to get average monthly electricity cost for a user
+    public double getAvgMonthlyElectricityCost(String userId, int year) {
+        try (PreparedStatement pstmt = connection.prepareStatement(
+                "SELECT AVG(total_cost) as monthly_avg FROM electricity_stats WHERE user_id = ? AND year = ?")) {
+            pstmt.setString(1, userId);
+            pstmt.setInt(2, year);
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getDouble("monthly_avg");
+            }
+            return 0.0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return 0.0;
         }
     }
 }

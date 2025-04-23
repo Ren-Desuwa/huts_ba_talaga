@@ -1,10 +1,15 @@
 package database;
 
 import models.Electricity;
+import models.ElectricityBill;
 import java.sql.*;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -259,4 +264,256 @@ public class Electricity_Manager {
         String userId = null; // or "system" if you prefer a default value
         saveElectricity(electricity, userId);
     }
-}
+    
+    // NEW METHODS FOR ELECTRICITY_PANEL
+    
+    // Add an electricity bill directly (for the panel's bill add functionality)
+    public boolean addElectricityBill(String userId, String date, double amount, double kwhUsed, String notes) {
+        try {
+            // Format date properly
+            LocalDate billDate = LocalDate.parse(date);
+            
+            // Create a unique ID for the bill
+            String billId = UUID.randomUUID().toString();
+            
+            // Get the first electricity account for this user (simplification)
+            List<Electricity> accounts = getElectricityByUserId(userId);
+            if (accounts.isEmpty()) {
+                // If no electricity account exists, create one
+                Electricity electricity = new Electricity("Default Account", "Default Provider", 
+                                                        "ACC" + System.currentTimeMillis(), amount / (kwhUsed > 0 ? kwhUsed : 100));
+                electricity.setMeterReading(kwhUsed);
+                addElectricity(electricity, userId);
+                
+                // Get the ID we just created
+                String utilityId = getElectricityByAccountNumber(electricity.getAccountNumber()).getId();
+                
+                // Insert the bill
+                insertBill(billId, utilityId, userId, amount, kwhUsed, billDate);
+                
+                // Update statistics
+                updateMonthlyStatistics(userId, billDate, kwhUsed, amount);
+                
+                return true;
+            } else {
+                // Use the first electricity account
+                Electricity electricity = accounts.get(0);
+                
+                // Insert the bill
+                insertBill(billId, electricity.getId(), userId, amount, kwhUsed, billDate);
+                
+                // If kWh used is provided, update the meter reading
+                if (kwhUsed > 0) {
+                    // Get the current reading
+                    double currentReading = electricity.getMeterReading();
+                    
+                    // Update to reflect additional usage
+                    electricity.setMeterReading(currentReading + kwhUsed);
+                    updateElectricity(electricity);
+                }
+                
+                // Update statistics
+                updateMonthlyStatistics(userId, billDate, kwhUsed, amount);
+                
+                return true;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // Private helper method to insert a bill record
+    private void insertBill(String billId, String utilityId, String userId, double amount, double consumption, LocalDate billDate) throws SQLException {
+        String sql = "INSERT INTO bill (id, utility_id, utility_type, user_id, amount, consumption, issue_date, due_date, is_paid) " +
+                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        // Calculate due date (30 days after issue date)
+        LocalDate dueDate = billDate.plusDays(30);
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, billId);
+            pstmt.setString(2, utilityId);
+            pstmt.setString(3, "electricity");
+            pstmt.setString(4, userId);
+            pstmt.setDouble(5, amount);
+            pstmt.setDouble(6, consumption);
+            pstmt.setString(7, billDate.toString());
+            pstmt.setString(8, dueDate.toString());
+            pstmt.setInt(9, 0); // Not paid by default
+            pstmt.executeUpdate();
+        }
+    }
+    
+    // Get all electricity bills for a user
+    public List<ElectricityBill> getBillsByUserId(String userId) {
+        List<ElectricityBill> bills = new ArrayList<>();
+        
+        String sql = "SELECT b.*, e.name, e.account_number FROM bill b " +
+                    "INNER JOIN electricity e ON b.utility_id = e.id " +
+                    "WHERE b.user_id = ? AND b.utility_type = 'electricity' " +
+                    "ORDER BY b.issue_date DESC";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                String billId = rs.getString("id");
+                String utilityId = rs.getString("utility_id");
+                double amount = rs.getDouble("amount");
+                double consumption = rs.getDouble("consumption");
+                LocalDate issueDate = LocalDate.parse(rs.getString("issue_date"));
+                LocalDate dueDate = LocalDate.parse(rs.getString("due_date"));
+                boolean isPaid = rs.getInt("is_paid") == 1;
+                String accountName = rs.getString("name");
+                String accountNumber = rs.getString("account_number");
+                
+                ElectricityBill bill = new ElectricityBill(billId, utilityId, userId, amount, consumption, issueDate);
+                bill.setDueDate(dueDate);
+                bill.setPaid(isPaid);
+                bill.setAccountName(accountName);
+                bill.setAccountNumber(accountNumber);
+                
+                bills.add(bill);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return bills;
+    }
+    
+    // Get monthly usage data for the histogram in the Electricity Panel
+    public Map<String, Double> getMonthlyUsageData(String userId, int year) {
+        Map<String, Double> monthlyData = new HashMap<>();
+        
+        // Initialize with all months
+        for (int i = 1; i <= 12; i++) {
+            YearMonth ym = YearMonth.of(year, i);
+            String monthName = ym.getMonth().toString();
+            monthlyData.put(monthName, 0.0);
+        }
+        
+        String sql = "SELECT strftime('%m', issue_date) as month, SUM(consumption) as total_kwh " +
+                    "FROM bill WHERE user_id = ? AND utility_type = 'electricity' " +
+                    "AND strftime('%Y', issue_date) = ? " +
+                    "GROUP BY strftime('%m', issue_date)";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, userId);
+            pstmt.setString(2, String.valueOf(year));
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                int monthNum = Integer.parseInt(rs.getString("month"));
+                double totalKwh = rs.getDouble("total_kwh");
+                
+                YearMonth ym = YearMonth.of(year, monthNum);
+                String monthName = ym.getMonth().toString();
+                monthlyData.put(monthName, totalKwh);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return monthlyData;
+    }
+    
+    // Get the year-to-date statistics for electricity usage
+    public double getTotalYearlyUsage(String userId, int year) {
+        String sql = "SELECT SUM(consumption) as total_kwh FROM bill " +
+                    "WHERE user_id = ? AND utility_type = 'electricity' " +
+                    "AND strftime('%Y', issue_date) = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, userId);
+            pstmt.setString(2, String.valueOf(year));
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getDouble("total_kwh");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return 0.0;
+    }
+    
+    // Get the total cost for the year
+    public double getTotalYearlyCost(String userId, int year) {
+        String sql = "SELECT SUM(amount) as total_cost FROM bill " +
+                    "WHERE user_id = ? AND utility_type = 'electricity' " +
+                    "AND strftime('%Y', issue_date) = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, userId);
+            pstmt.setString(2, String.valueOf(year));
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getDouble("total_cost");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return 0.0;
+    }
+    
+    // Get the average monthly cost
+    public double getAverageMonthlyBill(String userId, int year) {
+        String sql = "SELECT AVG(monthly_total) as avg_monthly " +
+                    "FROM (" +
+                    "  SELECT strftime('%m', issue_date) as month, SUM(amount) as monthly_total " +
+                    "  FROM bill WHERE user_id = ? AND utility_type = 'electricity' " +
+                    "  AND strftime('%Y', issue_date) = ? " +
+                    "  GROUP BY strftime('%m', issue_date)" +
+                    ")";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, userId);
+            pstmt.setString(2, String.valueOf(year));
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                return rs.getDouble("avg_monthly");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return 0.0;
+    }
+    
+    // Update monthly statistics table (for performance optimization)
+    private void updateMonthlyStatistics(String userId, LocalDate date, double kwhUsed, double amount) {
+        int year = date.getYear();
+        int month = date.getMonthValue();
+        
+        // Check if entry exists
+        String checkSql = "SELECT id FROM electricity_stats WHERE user_id = ? AND year = ? AND month = ?";
+        
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkSql)) {
+            checkStmt.setString(1, userId);
+            checkStmt.setInt(2, year);
+            checkStmt.setInt(3, month);
+            ResultSet rs = checkStmt.executeQuery();
+            
+            if (rs.next()) {
+                // Update existing entry
+                String updateSql = "UPDATE electricity_stats SET total_kwh = total_kwh + ?, total_cost = total_cost + ? " +
+                                 "WHERE user_id = ? AND year = ? AND month = ?";
+                
+                try (PreparedStatement updateStmt = connection.prepareStatement(updateSql)) {
+                    updateStmt.setDouble(1, kwhUsed);
+                    updateStmt.setDouble(2, amount);
+                    updateStmt.setString(3, userId);
+                    updateStmt.setInt(4, year);
+                    updateStmt.setInt(5, month);
+                    updateStmt.executeUpdate();
+                }
+            } else {
+                // Create new entry
+                String insertSql = "INSERT INTO electricity_stats
