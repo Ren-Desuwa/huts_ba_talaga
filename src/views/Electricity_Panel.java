@@ -5,6 +5,7 @@ import java.awt.*;
 import java.sql.Connection;
 import java.util.*;
 import models.Electricity;
+import models.User;  // Add this import
 import database.Database_Manager;
 import database.Electricity_Manager;
 
@@ -14,10 +15,12 @@ public class Electricity_Panel implements Utility_Panel {
     private java.util.List<Electricity> electricityAccounts;
     private Map<String, Double> previousElectricityReadings;
     private Electricity_Manager electricityManager;
+    private User currentUser;  // Add user field
     
-    public Electricity_Panel(Main_Frame parentFrame, Map<String, Double> previousReadings) {
+    public Electricity_Panel(Main_Frame parentFrame, Map<String, Double> previousReadings, User currentUser) {  // Updated constructor
         this.parentFrame = parentFrame;
         this.previousElectricityReadings = previousReadings;
+        this.currentUser = currentUser;  // Set the current user
         Connection connection = Database_Manager.getInstance().getConnection();
         this.electricityManager = new Electricity_Manager(connection);
         
@@ -38,8 +41,12 @@ public class Electricity_Panel implements Utility_Panel {
         // Clear the panel
         electricityPanel.removeAll();
         
-        // Fetch current data
-        electricityAccounts = electricityManager.getAllElectricity();
+        // Fetch only the current user's data
+        if (currentUser != null) {
+            electricityAccounts = electricityManager.getElectricityByUserId(currentUser.getId());
+        } else {
+            electricityAccounts = new ArrayList<>(); // Empty list if no user logged in
+        }
         
         // Add title
         JLabel titleLabel = new JLabel("Electricity Management");
@@ -56,6 +63,14 @@ public class Electricity_Panel implements Utility_Panel {
         JButton updateButton = new JButton("Update Reading");
         JButton calculateButton = new JButton("Calculate Bill");
         JButton removeButton = new JButton("Remove Account");
+        
+        // Disable buttons if no user is logged in
+        if (currentUser == null) {
+            addButton.setEnabled(false);
+            updateButton.setEnabled(false);
+            calculateButton.setEnabled(false);
+            removeButton.setEnabled(false);
+        }
         
         addButton.addActionListener(e -> addElectricityAccount());
         updateButton.addActionListener(e -> updateElectricityReading());
@@ -96,8 +111,16 @@ public class Electricity_Panel implements Utility_Panel {
         electricityPanel.repaint();
     }
     
- // Fix for the addElectricityAccount() method in Electricity_Panel.java
+    // Update the addElectricityAccount method to use the current user's ID
     private void addElectricityAccount() {
+        // Check if user is logged in
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Please log in to add an electricity account.", 
+                "Authentication Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         // Create a dialog for adding a new electricity account
         JDialog dialog = new JDialog(parentFrame, "Add Electricity Account", true);
         dialog.setSize(400, 300);
@@ -148,16 +171,15 @@ public class Electricity_Panel implements Utility_Panel {
                 
                 Electricity electricity = new Electricity(name, provider, accountNumber, rate);
                 electricity.setMeterReading(reading);
-                // Remove setting dateAdded since the database doesn't have that column
                 
-                // Save to database
-                electricityManager.addElectricity(electricity);
+                // Save to database with current user's ID
+                electricityManager.addElectricity(electricity, currentUser.getId());
                 
                 // Store the initial reading as the previous reading
                 previousElectricityReadings.put(accountNumber, reading);
                 
                 // Refresh the data from the database
-                electricityAccounts = electricityManager.getAllElectricity();
+                electricityAccounts = electricityManager.getElectricityByUserId(currentUser.getId());
                 
                 dialog.dispose();
                 refreshPanel(); // Refresh the panel
@@ -178,15 +200,25 @@ public class Electricity_Panel implements Utility_Panel {
         dialog.setVisible(true);
     }
     
+    // The remaining methods need minimal changes to ensure they work with the user-filtered data
+    
     private void updateElectricityReading() {
+        // Check if user is logged in
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Please log in to update electricity readings.", 
+                "Authentication Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         if (electricityAccounts.isEmpty()) {
             JOptionPane.showMessageDialog(parentFrame, 
-                "No electricity accounts found.", 
+                "No electricity accounts found for your user.", 
                 "No Accounts", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         
-        // Create a dialog for selecting an account and updating its reading
+        // Rest of the method remains unchanged
         JDialog dialog = new JDialog(parentFrame, "Update Electricity Reading", true);
         dialog.setSize(400, 200);
         dialog.setLocationRelativeTo(parentFrame);
@@ -225,7 +257,7 @@ public class Electricity_Panel implements Utility_Panel {
                 previousElectricityReadings.put(selected.getAccountNumber(), selected.getMeterReading());
                 selected.setMeterReading(newReading);
                 
-                // Update in database - THIS WAS MISSING
+                // Update in database
                 electricityManager.updateElectricity(selected);
                 
                 dialog.dispose();
@@ -245,17 +277,25 @@ public class Electricity_Panel implements Utility_Panel {
         dialog.add(buttonPanel, BorderLayout.SOUTH);
         
         dialog.setVisible(true);
-    }	
+    }
     
     private void calculateElectricityBill() {
+        // Check if user is logged in
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Please log in to calculate electricity bills.", 
+                "Authentication Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         if (electricityAccounts.isEmpty()) {
             JOptionPane.showMessageDialog(parentFrame, 
-                "No electricity accounts found.", 
+                "No electricity accounts found for your user.", 
                 "No Accounts", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         
-        // Create a dialog for selecting an account and showing the bill
+        // Rest of the method remains unchanged
         JDialog dialog = new JDialog(parentFrame, "Electricity Bill Calculation", true);
         dialog.setSize(500, 400);
         dialog.setLocationRelativeTo(parentFrame);
@@ -321,14 +361,22 @@ public class Electricity_Panel implements Utility_Panel {
     }
     
     private void removeElectricityAccount() {
+        // Check if user is logged in
+        if (currentUser == null) {
+            JOptionPane.showMessageDialog(parentFrame, 
+                "Please log in to remove electricity accounts.", 
+                "Authentication Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
         if (electricityAccounts.isEmpty()) {
             JOptionPane.showMessageDialog(parentFrame, 
-                "No electricity accounts found.", 
+                "No electricity accounts found for your user.", 
                 "No Accounts", JOptionPane.INFORMATION_MESSAGE);
             return;
         }
         
-        // Create a dialog for selecting an account to remove
+        // Rest of the method remains unchanged
         JDialog dialog = new JDialog(parentFrame, "Remove Electricity Account", true);
         dialog.setSize(400, 200);
         dialog.setLocationRelativeTo(parentFrame);
@@ -389,5 +437,18 @@ public class Electricity_Panel implements Utility_Panel {
     
     public Map<String, Double> getPreviousReadings() {
         return previousElectricityReadings;
+    }
+    
+    // Method to update the current user
+    public void setCurrentUser(User user) {
+        this.currentUser = user;
+        refreshPanel(); // Refresh to show only the current user's data
+    }
+    
+    // Method to clear the panel when user logs out
+    public void clearUserData() {
+        this.currentUser = null;
+        this.electricityAccounts.clear();
+        refreshPanel();
     }
 }

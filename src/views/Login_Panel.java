@@ -223,7 +223,7 @@ public class Login_Panel extends JPanel {
             }
             
             // Get the user object to check password
-            database.User user = userManager.getUser(username);
+            models.User user = userManager.getUser(username);
             System.out.println("User found: " + user);
             System.out.println("Stored password: " + user.getPassword());
             

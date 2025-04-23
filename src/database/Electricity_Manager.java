@@ -19,18 +19,18 @@ public class Electricity_Manager {
         this.historyManager = new Reading_History_Manager(connection);
     }
     
-    public void saveElectricity(Electricity electricity) {
+    public void saveElectricity(Electricity electricity, String userId) {
         String id = UUID.randomUUID().toString();
-        // Remove date_added from the SQL statement
-        String sql = "INSERT INTO electricity (id, name, provider, account_number, rate_per_kwh, meter_reading) VALUES (?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO electricity (id, user_id, name, provider, account_number, rate_per_kwh, meter_reading) VALUES (?, ?, ?, ?, ?, ?, ?)";
         
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, id);
-            pstmt.setString(2, electricity.getName());
-            pstmt.setString(3, electricity.getProvider());
-            pstmt.setString(4, electricity.getAccountNumber());
-            pstmt.setDouble(5, electricity.getRatePerKwh());
-            pstmt.setDouble(6, electricity.getMeterReading());
+            pstmt.setString(2, userId);  // Add userId parameter
+            pstmt.setString(3, electricity.getName());
+            pstmt.setString(4, electricity.getProvider());
+            pstmt.setString(5, electricity.getAccountNumber());
+            pstmt.setDouble(6, electricity.getRatePerKwh());
+            pstmt.setDouble(7, electricity.getMeterReading());
             pstmt.executeUpdate();
             
             // Save initial reading to history
@@ -49,6 +49,7 @@ public class Electricity_Manager {
              ResultSet rs = stmt.executeQuery(sql)) {
             
             while (rs.next()) {
+                String id = rs.getString("id");
                 String name = rs.getString("name");
                 String provider = rs.getString("provider");
                 String accountNumber = rs.getString("account_number");
@@ -57,6 +58,37 @@ public class Electricity_Manager {
                 
                 Electricity electricity = new Electricity(name, provider, accountNumber, ratePerKwh);
                 electricity.setMeterReading(meterReading);
+                electricity.setId(id);  // Ensure the ID is set
+                electricityList.add(electricity);
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
+        return electricityList;
+    }
+    
+    // New method to get electricity accounts for a specific user
+    public List<Electricity> getElectricityByUserId(String userId) {
+        List<Electricity> electricityList = new ArrayList<>();
+        String sql = "SELECT * FROM electricity WHERE user_id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, userId);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                String id = rs.getString("id");
+                String name = rs.getString("name");
+                String provider = rs.getString("provider");
+                String accountNumber = rs.getString("account_number");
+                double ratePerKwh = rs.getDouble("rate_per_kwh");
+                double meterReading = rs.getDouble("meter_reading");
+                
+                Electricity electricity = new Electricity(name, provider, accountNumber, ratePerKwh);
+                electricity.setMeterReading(meterReading);
+                electricity.setId(id);  // Ensure the ID is set
                 electricityList.add(electricity);
             }
             
@@ -180,6 +212,7 @@ public class Electricity_Manager {
                 
                 Electricity electricity = new Electricity(name, provider, accountNumber, ratePerKwh);
                 electricity.setMeterReading(meterReading);
+                electricity.setId(id);  // Ensure the ID is set
                 return electricity;
             }
         } catch (SQLException e) {
@@ -197,6 +230,7 @@ public class Electricity_Manager {
             ResultSet rs = pstmt.executeQuery();
             
             if (rs.next()) {
+                String id = rs.getString("id");
                 String name = rs.getString("name");
                 String provider = rs.getString("provider");
                 double ratePerKwh = rs.getDouble("rate_per_kwh");
@@ -204,6 +238,7 @@ public class Electricity_Manager {
                 
                 Electricity electricity = new Electricity(name, provider, accountNumber, ratePerKwh);
                 electricity.setMeterReading(meterReading);
+                electricity.setId(id);  // Ensure the ID is set
                 return electricity;
             }
         } catch (SQLException e) {
@@ -212,7 +247,32 @@ public class Electricity_Manager {
         
         return null;
     }
+    
+    // Update this method to include userId
+    public void addElectricity(Electricity electricity, String userId) {
+        saveElectricity(electricity, userId);
+    }
+    
+    // Keep this method for backwards compatibility
     public void addElectricity(Electricity electricity) {
-        saveElectricity(electricity);
+        // You may want to log a warning here as this method doesn't associate with a user
+        String sql = "INSERT INTO electricity (id, name, provider, account_number, rate_per_kwh, meter_reading) VALUES (?, ?, ?, ?, ?, ?)";
+        String id = UUID.randomUUID().toString();
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            pstmt.setString(2, electricity.getName());
+            pstmt.setString(3, electricity.getProvider());
+            pstmt.setString(4, electricity.getAccountNumber());
+            pstmt.setDouble(5, electricity.getRatePerKwh());
+            pstmt.setDouble(6, electricity.getMeterReading());
+            pstmt.executeUpdate();
+            
+            // Save initial reading to history
+            historyManager.saveReadingHistory(id, "electricity", electricity.getMeterReading());
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

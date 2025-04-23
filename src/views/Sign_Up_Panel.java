@@ -1,7 +1,8 @@
 package views;
 
 import database.User_Manager;
-import database.User;
+import models.User;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;

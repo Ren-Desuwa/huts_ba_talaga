@@ -13,7 +13,6 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
     private Connection connection;
     private static final String DB_URL = "jdbc:sqlite:data/huts.db";
     private Main_Frame parentFrame;
-    private Database_Manager dbManager;
     private Water_Manager waterManager;
     private Gas_Manager gasManager;
     private Electricity_Manager electricityManager;
@@ -22,14 +21,14 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
     // UI Components
     private JLabel welcomeLabel;
     private JPanel statsPanel;
-    private JLabel jlbl_Background;
+    private JLabel jlbl_BackgroundLeft;
+    private JLabel jlbl_BackgroundRight;
     private JPanel contentPanel;
     
     public Welcome_Panel(Main_Frame parentFrame, Database_Manager dbManager) {
         try {
             this.connection = DriverManager.getConnection(DB_URL);
             this.parentFrame = parentFrame;
-            this.dbManager = dbManager;
             
             // Initialize managers
             this.waterManager = new Water_Manager(connection);
@@ -37,8 +36,8 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
             this.electricityManager = new Electricity_Manager(connection);
             this.subscriptionManager = new Subscription_Manager(connection);
             
-            // Initialize the panel
-            setBackground(new Color(35, 50, 90));
+            // Initialize the panel with white background
+            setBackground(Color.WHITE);
             setLayout(new BorderLayout());
             
             initComponents();
@@ -82,21 +81,27 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
         
         headerPanel.add(iconLabel);
         headerPanel.add(welcomeLabel);
-        headerPanel.setBounds(250, 60, 700, 50);  // Adjusted from (200, 40, 500, 50)
+        headerPanel.setBounds(250, 60, 700, 50);
         
         contentPanel.add(headerPanel);
         
         // Initialize stats panel
         statsPanel = new JPanel(new GridLayout(2, 2, 20, 20));
         statsPanel.setOpaque(false);
-        statsPanel.setBounds(200, 150, 800, 350);  // Adjusted from (200, 120, 500, 250)
+        statsPanel.setBounds(200, 150, 800, 350);
         contentPanel.add(statsPanel);
         
-        // Background image
-        jlbl_Background = new JLabel();
-        jlbl_Background.setIcon(new ImageIcon(getClass().getResource("/assets/image/background(900x410).png")));
-        jlbl_Background.setBounds(0, 0, 1200, 700);
-        contentPanel.add(jlbl_Background);
+        // Background SVG elements - Left
+        jlbl_BackgroundLeft = new JLabel();
+        jlbl_BackgroundLeft.setIcon(new ImageIcon(getClass().getResource("/assets/image/background_LEFT(900x410).svg")));
+        jlbl_BackgroundLeft.setBounds(0, 0, 450, 205);
+        contentPanel.add(jlbl_BackgroundLeft);
+        
+        // Background SVG elements - Right
+        jlbl_BackgroundRight = new JLabel();
+        jlbl_BackgroundRight.setIcon(new ImageIcon(getClass().getResource("/assets/image/background_RIGHT(900x410).svg")));
+        jlbl_BackgroundRight.setBounds(750, 495, 450, 205);
+        contentPanel.add(jlbl_BackgroundRight);
         
         // Add content panel to main panel
         add(contentPanel, BorderLayout.CENTER);
@@ -112,19 +117,24 @@ public class Welcome_Panel extends JPanel implements Utility_Panel {
         
         // Calculate center positions
         int centerX = width / 2;
+        int centerY = height / 2;
         
         // Adjust header position
-        int headerWidth = 700;  // Increased from 500
+        int headerWidth = 700;
         int headerHeight = 50;
         contentPanel.getComponent(0).setBounds(centerX - (headerWidth / 2), 60, headerWidth, headerHeight);
         
         // Adjust stats panel position
-        int statsPanelWidth = Math.min(800, width - 200);  // Increased from 500
-        int statsPanelHeight = 350;  // Increased from 250
+        int statsPanelWidth = Math.min(800, width - 200);
+        int statsPanelHeight = 350;
         statsPanel.setBounds(centerX - (statsPanelWidth / 2), 150, statsPanelWidth, statsPanelHeight);
         
-        // Adjust background to fill the panel
-        jlbl_Background.setBounds(0, 0, width, height);
+        // Position the SVG background elements in the middle
+        // Left SVG - center left
+        jlbl_BackgroundLeft.setBounds(centerX - 450, centerY - 102, 450, 205);
+        
+        // Right SVG - center right
+        jlbl_BackgroundRight.setBounds(centerX, centerY - 102, 450, 205);
     }
     
     @Override

@@ -1,199 +1,158 @@
 package database;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.HashMap;
-import java.util.Map;
+import models.User;
+import java.sql.*;
+import java.util.UUID;
 
 public class User_Manager {
-    private Map<String, User> cachedUsers;
     private Connection connection;
     
     public User_Manager(Connection connection) {
         this.connection = connection;
-        this.cachedUsers = new HashMap<>();
-        // Load users from database
-        loadUsersFromDatabase();
     }
     
-    /**
-     * Loads all users from the database into the cache
-     */
-    private void loadUsersFromDatabase() {
-        try {
-            String query = "SELECT username, password, email, full_name FROM users";
-            PreparedStatement statement = connection.prepareStatement(query);
-            ResultSet resultSet = statement.executeQuery();
+    public boolean saveUser(User user) {
+        String id = UUID.randomUUID().toString();
+        String sql = "INSERT INTO users (id, username, password, email, full_name) VALUES (?, ?, ?, ?, ?)";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            pstmt.setString(2, user.getUsername());
+            pstmt.setString(3, user.getPassword()); // Note: In a real app, passwords should be hashed
+            pstmt.setString(4, user.getEmail());
+            pstmt.setString(5, user.getFullName());
             
-            while (resultSet.next()) {
-                String username = resultSet.getString("username");
-                String password = resultSet.getString("password");
-                String email = resultSet.getString("email");
-                String fullName = resultSet.getString("full_name");
+            int rowsAffected = pstmt.executeUpdate();
+            if (rowsAffected > 0) {
+                user.setId(id); // Set the generated ID back to the user object
+                return true;
+            }
+            return false;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    public boolean authenticateUser(String username, String password) {
+        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, password); // Note: In a real app, passwords should be hashed
+            
+            ResultSet rs = pstmt.executeQuery();
+            return rs.next(); // Return true if a matching user is found
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    
+    // Add a method to get a user by username and password
+    public User getUserByCredentials(String username, String password) {
+        String sql = "SELECT * FROM users WHERE username = ? AND password = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            pstmt.setString(2, password); // Note: In a real app, passwords should be hashed
+            
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String id = rs.getString("id");
+                String email = rs.getString("email");
+                String fullName = rs.getString("full_name");
                 
-                User user = new User(username, password, email, fullName);
-                cachedUsers.put(username, user);
+                User user = new User(id, username, password, email, fullName);
+                return user;
             }
             
-            resultSet.close();
-            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
+        
+        return null;
     }
     
-    public boolean addUser(User user) {
-        if (user != null && !userExists(user.getUsername())) {
-            // Add to database
-            try {
-                String query = "INSERT INTO users (username, password, email, full_name) VALUES (?, ?, ?, ?)";
-                PreparedStatement statement = connection.prepareStatement(query);
-                statement.setString(1, user.getUsername());
-                statement.setString(2, user.getPassword());
-                statement.setString(3, user.getEmail());
-                statement.setString(4, user.getFullName());
+    public User getUserById(String id) {
+        String sql = "SELECT * FROM users WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String username = rs.getString("username");
+                String password = rs.getString("password");
+                String email = rs.getString("email");
+                String fullName = rs.getString("full_name");
                 
-                int result = statement.executeUpdate();
-                statement.close();
-                
-                if (result > 0) {
-                    // Add to cache
-                    cachedUsers.put(user.getUsername(), user);
-                    return true;
-                }
-                return false;
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return false;
+                return new User(id, username, password, email, fullName);
             }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return false;
+        
+        return null;
     }
-
-    /**
-     * Updates user password
-     */
-    public boolean updateUserPassword(String username, String newPassword) {
-        User user = getUser(username);
-        if (user != null) {
-            try {
-                String query = "UPDATE users SET password = ? WHERE username = ?";
-                PreparedStatement statement = connection.prepareStatement(query);
-                statement.setString(1, newPassword);
-                statement.setString(2, username);
+    
+    public User getUserByUsername(String username) {
+        String sql = "SELECT * FROM users WHERE username = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, username);
+            
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                String id = rs.getString("id");
+                String password = rs.getString("password");
+                String email = rs.getString("email");
+                String fullName = rs.getString("full_name");
                 
-                int result = statement.executeUpdate();
-                statement.close();
-                
-                if (result > 0) {
-                    // Update in cache
-                    user.setPassword(newPassword);
-                    return true;
-                }
-                return false;
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return false;
+                return new User(id, username, password, email, fullName);
             }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
-        return false;
-    }
-
-    /**
-     * Checks if a username exists
-     */
-    public boolean userExists(String username) {
-        return cachedUsers.containsKey(username);
-    }
-
-    /**
-     * Gets user by username
-     */
-    public User getUser(String username) {
-        return cachedUsers.get(username);
+        
+        return null;
     }
     
-    /**
-     * Authenticates a user with given credentials
-     */
-    public boolean authenticateUser(String username, String password) {
-        User user = getUser(username);
-        if (user != null) {
-            return user.getPassword().equals(password);
+    public boolean updateUser(User user) {
+        String sql = "UPDATE users SET username = ?, password = ?, email = ?, full_name = ? WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, user.getUsername());
+            pstmt.setString(2, user.getPassword());
+            pstmt.setString(3, user.getEmail());
+            pstmt.setString(4, user.getFullName());
+            pstmt.setString(5, user.getId());
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
     }
     
-    /**
-     * Updates user information
-     */
-    public boolean updateUserInfo(String username, String email, String fullName) {
-        User user = getUser(username);
-        if (user != null) {
-            try {
-                String query = "UPDATE users SET email = ?, full_name = ? WHERE username = ?";
-                PreparedStatement statement = connection.prepareStatement(query);
-                statement.setString(1, email);
-                statement.setString(2, fullName);
-                statement.setString(3, username);
-                
-                int result = statement.executeUpdate();
-                statement.close();
-                
-                if (result > 0) {
-                    // Update in cache
-                    user.setEmail(email);
-                    user.setFullName(fullName);
-                    return true;
-                }
-                return false;
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return false;
-            }
+    public boolean deleteUser(String id) {
+        String sql = "DELETE FROM users WHERE id = ?";
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, id);
+            
+            int rowsAffected = pstmt.executeUpdate();
+            return rowsAffected > 0;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
         }
-        return false;
-    }
-    
-    /**
-     * Removes a user from the system
-     */
-    public boolean removeUser(String username) {
-        if (userExists(username)) {
-            try {
-                String query = "DELETE FROM users WHERE username = ?";
-                PreparedStatement statement = connection.prepareStatement(query);
-                statement.setString(1, username);
-                
-                int result = statement.executeUpdate();
-                statement.close();
-                
-                if (result > 0) {
-                    // Remove from cache
-                    cachedUsers.remove(username);
-                    return true;
-                }
-                return false;
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return false;
-            }
-        }
-        return false;
-    }
-    
-    /**
-     * Gets all users in the system
-     */
-    public Map<String, User> getAllUsers() {
-        return new HashMap<>(cachedUsers); // Return a copy to prevent direct modification
-    }
-    public void reloadUsersFromDatabase() {
-        // Clear the existing cache
-        cachedUsers.clear();
-        // Reload from database
-        loadUsersFromDatabase();
     }
 }
