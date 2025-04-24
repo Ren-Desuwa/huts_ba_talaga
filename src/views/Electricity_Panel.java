@@ -700,4 +700,5 @@ public class Electricity_Panel implements Utility_Panel {
         this.electricityAccounts.clear();
         refreshPanel();
     }
+    
 }
